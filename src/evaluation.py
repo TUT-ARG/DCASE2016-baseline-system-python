@@ -1,9 +1,7 @@
 import sys
 import numpy
 import math
-from IPython import embed
 from sklearn import metrics
-
 
 class DCASE2016_SceneClassification_Metrics():
     def __init__(self, class_list=None):

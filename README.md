@@ -1,10 +1,14 @@
-Title:  DCASE2016 Task 1 and task 3, Baseline systems, Python implementation 
-
-DCASE2016 Task 1 and task 3, Baseline systems, Python implementation 
-=========================================
+DCASE2016 Baseline system
+====================================================================
 [Audio Research Team / Tampere University of Technology](http://arg.cs.tut.fi/)
 
-Author(s)
+*Python implementations*
+
+Systems:
+- Task 1 - Acoustic scene classification
+- Task 3 - Real life audio sound event detection
+
+Author
 - Toni Heittola (<toni.heittola@tut.fi>, <http://www.cs.tut.fi/~heittolt/>)
 
 # Table of Contents
@@ -16,9 +20,8 @@ Author(s)
 6. [System parameters](#6-system-parameters)
 7. [Changelog](#7-changelog)
 8. [License](#8-license)
-
 1. Introduction
-=================================
+===============
 This document describes the Python implementation of the baseline systems for the [Detection and Classification of Acoustic Scenes and Events 2016 (DCASE2016) challenge](http://www.cs.tut.fi/sgn/arg/dcase2016/) **[tasks 1](#11-acoustic-scene-classification)** and **[task 3](#12-sound-event-detection)**. The challenge consists of four tasks:
 
 1. [Acoustic scene classification](http://www.cs.tut.fi/sgn/arg/dcase2016/task-acoustic-scene-classification)
@@ -39,7 +42,7 @@ The acoustic features include MFCC static coefficients (with 0th coefficient), d
 The acoustic features include MFCC static coefficients (0th coefficient omitted), delta coefficients and acceleration coefficients. The system has a binary classifier for each sound event class included. For the classifier, two acoustic models are trained from the mixture signals: one with positive examples (target sound event active) and one with negative examples (target sound event non-active). The classification is done between these two models as likelihood ratio. Post-processing is applied to get sound event detection output. 
 
 2. Installation
-=================================
+===============
 
 The systems are developed for [Python 2.7](https://www.python.org/). Currently, the baseline systems are tested only with Linux operating systems. 
 
@@ -48,7 +51,7 @@ The systems are developed for [Python 2.7](https://www.python.org/). Currently, 
 [*numpy*](http://www.numpy.org/), [*scipy*](http://www.scipy.org/), [*scikit-learn*](http://scikit-learn.org/)
 `pip install numpy scipy scikit-learn`
 
-Scikit-learn is required for the machine learning implementations.
+Scikit-learn (version >= 0.17) is required for the machine learning implementations.
 
 [*PyYAML*](http://pyyaml.org/)
 `pip install pyyaml`
@@ -61,7 +64,7 @@ PyYAML is required for handling the configuration files.
 Librosa is required for the feature extraction.
 
 3. Usage
-=================================
+========
 
 For each task there is separate executable (.py file):
 
@@ -92,7 +95,7 @@ To run the system in this mode:
 
 
 4. System blocks
-=================================
+================
 
 The system implements following blocks:
 
@@ -121,31 +124,15 @@ The system implements following blocks:
   - Does the evaluation: reads the ground truth and the output of the system and calculates evaluation metrics
 
 5. System results
-=================================
+=================
 
 #### Task 1 - Acoustic scene classification
 
-Dataset: ** DCASE 2013 -- Scene classification, development set **
-Evaluation setup: 5 fold average, 10 classes, evaluated in 30 second blocks.
-System main parameters: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (including 0th) + 20 delta coefficients + 20 acceleration coefficients
+##### TUT Acoustic scenes 2016, development set
 
-| Scene                | Accuracy     |
-|----------------------|--------------|
-| Bus                  |  93.3 %      |
-| Busy street          |  80.0 %      |
-| Office               |  86.7 %      |
-| Open air market      |  73.3 %      |
-| Park                 |  26.7 %      |
-| Quiet street         |  53.3 %      |
-| Restaurant           |  40.0 %      |
-| Supermarket          |  26.7 %      |
-| Tube                 |  66.7 %      |
-| Tube station         |  53.3 %      |
-| **Overall accuracy** |  **60.0 %**  |
+**Evaluation setup**: 4 fold average, 15 classes, evaluated in 30 second blocks.
 
-Dataset: ** TUT Acoustic scenes 2016, development set **
-Evaluation setup: 4 fold average, 15 classes, evaluated in 30 second blocks.
-System main parameters: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (including 0th) + 20 delta coefficients + 20 acceleration coefficients
+**System parameters**: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (including 0th) + 20 delta coefficients + 20 acceleration coefficients
 
 | Scene                | Accuracy     |
 |----------------------|--------------|
@@ -166,11 +153,33 @@ System main parameters: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 
 | Tram                 |  63.4 %      |
 | **Overall accuracy** |  **75.2 %**  |
 
+##### DCASE 2013 Scene classification, development set
+
+**Evaluation setup**: 5 fold average, 10 classes, evaluated in 30 second blocks.
+
+**System parameters**: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (including 0th) + 20 delta coefficients + 20 acceleration coefficients
+
+| Scene                | Accuracy     |
+|----------------------|--------------|
+| Bus                  |  93.3 %      |
+| Busy street          |  80.0 %      |
+| Office               |  86.7 %      |
+| Open air market      |  73.3 %      |
+| Park                 |  26.7 %      |
+| Quiet street         |  53.3 %      |
+| Restaurant           |  40.0 %      |
+| Supermarket          |  26.7 %      |
+| Tube                 |  66.7 %      |
+| Tube station         |  53.3 %      |
+| **Overall accuracy** |  **60.0 %**  |
+
 #### Task 3 - Real life audio sound event detection
 
-Dataset: ** TUT Sound events 2016, development set  **
-Evaluation setup: 4 fold 
-System main parameters: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (excluding 0th) + 20 delta coefficients + 20 acceleration coefficients
+##### TUT Sound events 2016, development set
+
+**Evaluation setup**: 4 fold 
+
+**System parameters**: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (excluding 0th) + 20 delta coefficients + 20 acceleration coefficients
 
 *Segment based metrics - overall*
 
@@ -206,7 +215,7 @@ System main parameters: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 
 
 
 6. System parameters
-=================================
+====================
 All the parameters are set in `task1_scene_classification.yaml`, and `task3_real_life_audio_sound_event_detection.yaml`.
 
 **Controlling the system flow**
@@ -229,7 +238,7 @@ The selection of used dataset.
       development_dataset: TUTSoundEvents_2016_DevelopmentSet
       challenge_dataset: TUTSoundEvents_2016_EvaluationSet
 
-      overwrite: false              # Overwrite previously stored data 
+      overwrite: false                                          # Overwrite previously stored data 
 
 `development_dataset: TUTSoundEvents_2016_DevelopmentSet`
 : The dataset handler class used while running the system in development mode. If one wants to handle a new dataset, inherit a new class from the Dataset class (`src/dataset.py`).
@@ -238,14 +247,15 @@ The selection of used dataset.
 : The dataset handler class used while running the system in challenge mode. If one wants to handle a new dataset, inherit a new class from the Dataset class (`src/dataset.py`).
 
 Available dataset handler classes:
-**DCASE2016**
+
+**DCASE 2016**
 
 - TUTAcousticScenes_2016_DevelopmentSet
 - TUTAcousticScenes_2016_EvaluationSet
 - TUTSoundEvents_2016_DevelopmentSet
 - TUTSoundEvents_2016_EvaluationSet
 
-**DCASE2013**
+**DCASE 2013**
 
 - DCASE2013_Scene_DevelopmentSet
 - DCASE2013_Scene_ChallengeSet
@@ -254,7 +264,7 @@ Available dataset handler classes:
 
 
 `overwrite: false`
-: Switch to allow the system to overwrite existing data on disk. 
+: Switch to allow the system always to overwrite existing data on disk. 
 
   
 **System paths**
@@ -272,7 +282,7 @@ This section contains the storage paths.
 
       challenge_results: challenge_submission/task_1_acoustic_scene_classification/
 
-These parameters defines the folder-structure to store acoustic features, feature normalization data, trained acoustic models and evaluation results.      
+These parameters defines the folder-structure to store acoustic features, feature normalization data, acoustic models and evaluation results.      
 
 `data: data/`
 : Defines the path where the dataset data is downloaded and stored. Path can be relative or absolute. 
@@ -390,11 +400,11 @@ This section contains the sound event detection related parameters.
 : Minimum gap (in seconds) between events from same event class in the output. Consecutive events having shorter gaps between them than set are merged together.
 
 7. Changelog
-=================================
+============
 #### 1.0 / 2016-02-04
 * Initial commit
 
 8. License
-=================================
+==========
 
 See file [EULA.pdf](EULA.pdf)
