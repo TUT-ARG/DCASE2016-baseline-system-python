@@ -1,6 +1,6 @@
 DCASE2016 Baseline system
-====================================================================
-[Audio Research Team / Tampere University of Technology](http://arg.cs.tut.fi/)
+=========================
+[Audio Research Group / Tampere University of Technology](http://arg.cs.tut.fi/)
 
 *Python implementations*
 
@@ -10,13 +10,15 @@ Systems:
 
 Author
 - Toni Heittola (<toni.heittola@tut.fi>, <http://www.cs.tut.fi/~heittolt/>)
+- Annamaria Mesaros (<annamaria.mesaros@tut.fi>, <http://www.cs.tut.fi/~mesaros/>)
+- Tuomas Virtanen (<tuomas.virtanen@tut.fi>, <http://www.cs.tut.fi/~tuomasv/>)
 
 # Table of Contents
 1. [Introduction](#1-introduction)
 2. [Installation](#2-installation)
 3. [Usage](#3-usage)
 4. [System blocks](#4-system-blocks)
-5. [System results](#5-system-results)
+5. [System evaluation](#5-system-evaluation)
 6. [System parameters](#6-system-parameters)
 7. [Changelog](#7-changelog)
 8. [License](#8-license)
@@ -44,7 +46,7 @@ The acoustic features include MFCC static coefficients (0th coefficient omitted)
 2. Installation
 ===============
 
-The systems are developed for [Python 2.7](https://www.python.org/). Currently, the baseline systems are tested only with Linux operating systems. 
+The systems are developed for [Python 2.7](https://www.python.org/). Currently, the baseline system is tested only with Linux operating system. 
 
 **External modules required**
 
@@ -71,7 +73,7 @@ For each task there is separate executable (.py file):
 1. *task1_scene_classification.py*, Acoustic scene classification
 3. *task3_real_life_audio_sound_event_detection.py*, Real life audio sound event detection
 
-Each system has two operating modes: *Development mode* and *Challenge mode*. 
+Each system has two operating modes: **Development mode** and **Challenge mode**. 
 
 All the usage parameters are shown by `python task1_scene_classification.py -h` and `python task3_real_life_audio_sound_event_detection.py -h`
 
@@ -79,7 +81,7 @@ The system parameters are defined in `task1_scene_classification.yaml` and `task
 
 #### Development mode
 
-In this mode the system is trained and evaluated within the development dataset. This is the default operating mode. 
+In this mode, the system is trained and evaluated with the development dataset. This is the default operating mode. 
 
 To run the system in this mode:
 `python task1_scene_classification.py` 
@@ -87,11 +89,10 @@ or `python task1_scene_classification.py -development`.
 
 #### Challenge mode
 
-In this mode the system is trained with all the provided development data and the challenge data is run through the developed system. Output files are generated in correct format for the challenge submission. 
+In this mode, the system is trained with the provided development dataset and the evaluation dataset is run through the developed system. Output files are generated in correct format for the challenge submission. The system ouput is saved in the path specified with the parameter: `path->challenge_results`.
 
 To run the system in this mode:
 `python task1_scene_classification.py -challenge`.
-
 
 
 4. System blocks
@@ -106,33 +107,49 @@ The system implements following blocks:
 
 2. Feature extraction (`do_feature_extraction`)
   - Goes through all the training material and extracts the acoustic features
-  - Features are stored file-by-file on the local disk (pickle file)
+  - Features are stored file-by-file on the local disk (pickle files)
 
 3. Feature normalization (`do_feature_normalization`)
   - Goes through the training material in evaluation folds, and calculates global mean and std of the data.
-  - Stores the normalization factors (pickle file)
+  - Stores the normalization factors (pickle files)
 
 4. System training (`do_system_training`)
   - Trains the system
-  - Stores the trained models and feature normalization factors together on the local disk (pickle file)
+  - Stores the trained models and feature normalization factors together on the local disk (pickle files)
 
 5. System testing (`do_system_testing`)
   - Goes through the testing material and does the classification / detection 
-  - Stores the results (text file)
+  - Stores the results (text files)
 
 6. System evaluation (`do_system_evaluation`)
-  - Does the evaluation: reads the ground truth and the output of the system and calculates evaluation metrics
+  - Reads the ground truth and the output of the system and calculates evaluation metrics
 
-5. System results
-=================
+5. System evaluation
+====================
 
-#### Task 1 - Acoustic scene classification
+## Task 1 - Acoustic scene classification
+
+###  Metrics
+
+The scoring of acoustic scene classification will be based on classification accuracy: the number of correctly classified segments among the total number of segments. Each segment is considered an independent test sample. 
+
+### Results
 
 ##### TUT Acoustic scenes 2016, development set
 
-**Evaluation setup**: 4 fold average, 15 classes, evaluated in 30 second blocks.
+[Dataset]()
 
-**System parameters**: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (including 0th) + 20 delta coefficients + 20 acceleration coefficients
+*Evaluation setup*
+
+- 4 cross-validation folds, average classification accuracy over folds
+- 15 acoustic scene classes
+- Classification unit: one file (30 seconds of audio).
+
+*System parameters*
+
+- Frame size: 40 ms (with 50% hop size)
+- Number of Gaussians per acoustic scene class model: 16 
+- Feature vector: 20 MFCC static coefficients (including 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values
 
 | Scene                | Accuracy     |
 |----------------------|--------------|
@@ -155,9 +172,19 @@ The system implements following blocks:
 
 ##### DCASE 2013 Scene classification, development set
 
-**Evaluation setup**: 5 fold average, 10 classes, evaluated in 30 second blocks.
+[Dataset](http://c4dm.eecs.qmul.ac.uk/rdr/handle/123456789/29)
 
-**System parameters**: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (including 0th) + 20 delta coefficients + 20 acceleration coefficients
+*Evaluation setup*
+
+- 5 fold average
+- 10 acoustic scene classes
+- Classification unit: one file (30 seconds of audio).
+
+*System parameters*
+
+- Frame size: 40 ms (with 50% hop size)
+- Number of Gaussians per acoustic scene class model: 16 
+- Feature vector: 20 MFCC static coefficients (including 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values
 
 | Scene                | Accuracy     |
 |----------------------|--------------|
@@ -173,19 +200,52 @@ The system implements following blocks:
 | Tube station         |  53.3 %      |
 | **Overall accuracy** |  **60.0 %**  |
 
-#### Task 3 - Real life audio sound event detection
+
+## Task 3 - Real life audio sound event detection
+
+###  Metrics
+
+**Segment-based metrics**
+
+Segment based evaluation is done in a fixed time grid, using segments of one second length to compare the ground truth and the system output. 
+
+- **Total error rate (ER)** is the main metric for this task. Error rate as defined in [Poliner2007](https://www.ee.columbia.edu/~dpwe/pubs/PoliE06-piano.pdf) will be evaluated in one-second segments over the entire test set. 
+
+- **F-score** is calculated over all test data based on the total number of false positive, false negatives and true positives. 
+
+**Event-based metrics**
+
+Event-based evaluation considers true positives, false positives and false negatives with respect to event instances. 
+
+**Definition**: An event in the system output is considered correctly detected if its temporal position is overlapping with the temporal position of an event with the same label in the ground truth. A tolerance is allowed for the onset and offset (200 ms for onset and 200 ms or half length for offset)
+
+- **Error rate** calculated as described in [Poliner2007](https://www.ee.columbia.edu/~dpwe/pubs/PoliE06-piano.pdf) over all test data based on the total number of insertions, deletions and substitutions.
+
+- **F-score** is calculated over all test data based on the total number of false positive, false negatives and true positives.
+
+Detailed description of metrics can be found from [DCASE2016 website](http://www.cs.tut.fi/sgn/arg/dcase2016/sound-event-detection-metrics).
+
+### Results
 
 ##### TUT Sound events 2016, development set
 
-**Evaluation setup**: 4 fold 
+[Dataset]()
 
-**System parameters**: Frame size: 40 ms (50% hop size), NC: 16, Feature: MFCC 20 static coefficients (excluding 0th) + 20 delta coefficients + 20 acceleration coefficients
+*Evaluation setup*
+
+- 4 cross-validation folds
+
+*System parameters*
+
+- Frame size: 40 ms (with 50% hop size)
+- Number of Gaussians per sound event model (positive and negative): 16 
+- Feature vector: 20 MFCC static coefficients (excluding 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values
 
 *Segment based metrics - overall*
 
 | Scene                 | ER          | ER / S      | ER / D      | ER / I      |  F1         |
 |-----------------------|-------------|-------------|-------------|-------------|-------------|
-| Home                  | 0.95        | 0.09        | 0.80        | 0.06        | 18.1        |
+| Home                  | 0.95        | 0.09        | 0.80        | 0.06        | 18.1 %      |
 | Residential area      | 0.83        | 0.07        | 0.69        | 0.08        | 35.2 %      |
 | **Average**           |  **0.89 **  |             |             |             | **26.6 %**  |
 
@@ -258,9 +318,9 @@ Available dataset handler classes:
 **DCASE 2013**
 
 - DCASE2013_Scene_DevelopmentSet
-- DCASE2013_Scene_ChallengeSet
+- DCASE2013_Scene_EvaluationSet
 - DCASE2013_Event_DevelopmentSet
-- DCASE2013_Event_ChallengeSet
+- DCASE2013_Event_EvaluationSet
 
 
 `overwrite: false`
@@ -374,6 +434,8 @@ This section contains the frame classification related parameters.
 `classifier_parameters->gmm->n_components: 8`
 : Number of Gaussians used in the modeling.
 
+In order to add new classifiers to the system, add parameters under classifier_parameters with new tag. Set `classifier->method` and add appropriate code where `classifier_method` variable is used system block API (look into `do_system_training` and `do_system_testing` methods). In addition to this, one might want to modify filename methods (`get_model_filename` and `get_result_filename`) to allow multiple classifier methods co-exist in the system.
+
 **Detector**
 
 This section contains the sound event detection related parameters.
@@ -385,7 +447,7 @@ This section contains the sound event detection related parameters.
       minimum_event_gap: 0.1        # seconds
 
 `decision_threshold: 140.0`
-: Decision threshold used to do final classification. This can be used to control the sensitivity of the system. `event_activity = (positive - negative) > decision_threshold`
+: Decision threshold used to do final classification. This can be used to control the sensitivity of the system. With log-likelihoods: `event_activity = (positive - negative) > decision_threshold`
 
 
 `smoothing_window_length: 1.0`
@@ -393,15 +455,15 @@ This section contains the sound event detection related parameters.
 
 
 `minimum_event_length: 0.1`
-: Minimum length (in seconds) of outputted events. Shorted event are filtered out.   
+: Minimum length (in seconds) of outputted events. Events with shorter length than given are filtered out from the system output.
 
 
 `minimum_event_gap: 0.1`
-: Minimum gap (in seconds) between events from same event class in the output. Consecutive events having shorter gaps between them than set are merged together.
+: Minimum gap (in seconds) between events from same event class in the output. Consecutive events (event with same event label) having shorter gaps between them than set parameter are merged together.
 
 7. Changelog
 ============
-#### 1.0 / 2016-02-04
+#### 1.0 / 2016-02-08
 * Initial commit
 
 8. License

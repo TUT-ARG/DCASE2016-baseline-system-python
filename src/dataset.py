@@ -4,9 +4,6 @@ import socket
 import locale
 import zipfile
 import tarfile
-import csv
-import math
-import numpy
 from sklearn.cross_validation import StratifiedShuffleSplit, KFold
 from IPython import embed
 
@@ -14,38 +11,378 @@ from ui import *
 from general import *
 from files import *
 
-# Base class
-class Dataset(object):
-    def __init__(self, data_path='data'):
-        if not hasattr(self, 'name'):
-            self.name = 'dataset'
-        if not hasattr(self, 'evaluation_setup_folder'):
-            self.evaluation_setup_folder = 'evaluation_setup'
-        if not hasattr(self, 'meta_filename'):
-            self.meta_filename = 'meta.txt'
-        if not hasattr(self, 'filelisthash_filename'):
-            self.filelisthash_filename = 'filelist.hash'
 
+class Dataset(object):
+    """Dataset base class.
+
+    The specific dataset classes are inherited from this class, and only needed methods are reimplemented.
+
+    """
+
+    def __init__(self, data_path='data', name='dataset'):
+        """__init__ method.
+
+        Parameters
+        ----------
+        data_path : string
+            Basepath where the dataset is stored.
+            (Default value='data')
+
+        """
+
+        # Folder name for dataset
+        self.name = name
+
+        # Path to the dataset
         self.local_path = os.path.join(data_path, self.name)
 
+        # Create the dataset path if does not exist
         if not os.path.isdir(self.local_path):
             os.makedirs(self.local_path)
 
-        self.meta_file = os.path.join(self.local_path, self.meta_filename)
+        # Evaluation setup folder
+        self.evaluation_setup_folder = 'evaluation_setup'
+
+        # Path to the folder containing evaluation setup files
         self.evaluation_setup_path = os.path.join(self.local_path, self.evaluation_setup_folder)
 
+        # Meta data file, csv-format
+        self.meta_filename = 'meta.txt'
+
+        # Path to meta data file
+        self.meta_file = os.path.join(self.local_path, self.meta_filename)
+
+        # Hash file to detect removed or added files
+        self.filelisthash_filename = 'filelist.hash'
+
+        # Number of evaluation folds
+        self.evaluation_folds = 1
+
+        # List containing dataset package items
+        # Define this in the inherited class.
+        # Format:
+        # {
+        #        'remote_package': download_url,
+        #        'local_package': os.path.join(self.local_path, 'name_of_downloaded_package'),
+        #        'local_audio_path': os.path.join(self.local_path, 'name_of_folder_containing_audio_files'),
+        # }
         self.package_list = []
 
+        # List of audio files
         self.files = None
+
+        # List of meta data dict
         self.meta_data = None
+
+        # Training meta data for folds
         self.evaluation_data_train = {}
+
+        # Testing meta data for folds
         self.evaluation_data_test = {}
+
+        # Recognized audio extensions
         self.audio_extensions = {'wav', 'flac'}
 
-    def print_bytes(self, num_bytes):
+        # Info fields for dataset
+        self.authors = ''
+        self.name_remote = ''
+        self.url = ''
+        self.audio_source = ''
+        self.audio_type = ''
+        self.recording_device_model = ''
+        self.microphone_model = ''
+
+    @property
+    def audio_files(self):
+        """Get all audio files in the dataset
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        filelist: list
+            File list with absolute paths
         """
-        Output number of bytes according to locale and with IEC binary prefixes
+
+        if self.files is None:
+            self.files = []
+            for item in self.package_list:
+                path = item['local_audio_path']
+                if path:
+                    l = os.listdir(path)
+                    for f in l:
+                        file_name, file_extension = os.path.splitext(f)
+                        if file_extension[1:] in self.audio_extensions:
+                            self.files.append(os.path.abspath(os.path.join(path, f)))
+            self.files.sort()
+        return self.files
+
+    @property
+    def audio_file_count(self):
+        """Get number of audio files in dataset
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        filecount: integer
+            Number of audio files
         """
+
+        return len(self.audio_files)
+
+    @property
+    def meta(self):
+        """Get meta data for dataset. If not already read from disk, data is read and returned.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        meta_data: list
+            List containing meta data as dict.
+        """
+
+        if self.meta_data is None:
+            self.meta_data = []
+            meta_id = 0
+            if os.path.isfile(self.meta_file):
+                f = open(self.meta_file, 'rt')
+                try:
+                    reader = csv.reader(f, delimiter='\t')
+                    for row in reader:
+                        if len(row) == 2:
+                            # Scene meta
+                            self.meta_data.append({'file': row[0], 'scene_label': row[1].rstrip().strip()})
+                        elif len(row) == 4:
+                            # Audio tagging meta
+                            self.meta_data.append(
+                                {'file': row[0], 'scene_label': row[1].rstrip().strip(), 'tag_string': row[2],
+                                 'tags': row[3].split(';')})
+                        elif len(row) == 6:
+                            # Event meta
+                            self.meta_data.append({'file': row[0],
+                                                   'scene_label': row[1].rstrip().strip(),
+                                                   'event_onset': float(row[2]),
+                                                   'event_offset': float(row[3]),
+                                                   'event_label': row[4],
+                                                   'event_type': row[5],
+                                                   'id': meta_id
+                                                   })
+                        meta_id += 1
+                finally:
+                    f.close()
+            else:
+                raise IOError("Meta file missing [%s]" % self.meta_file)
+
+        return self.meta_data
+
+    @property
+    def meta_count(self):
+        """Number of meta data items.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        meta_item_count: integer
+            Meta data item count
+        """
+
+        return len(self.meta)
+
+    @property
+    def fold_count(self):
+        """Number of fold in the evaluation setup.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        fold_count: integer
+            Number of folds
+        """
+
+        return self.evaluation_folds
+
+    @property
+    def scene_labels(self):
+        """List of unique scene labels in the meta data.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        labels: list
+            List of scene labels in alphabetical order.
+        """
+
+        labels = []
+        for item in self.meta:
+            if 'scene_label' in item and item['scene_label'] not in labels:
+                labels.append(item['scene_label'])
+        labels.sort()
+        return labels
+
+    @property
+    def scene_label_count(self):
+        """Number of unique scene labels in the meta data.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        scene_label_count: integer
+            Number of unique scene labels
+        """
+
+        return len(self.scene_labels)
+
+    @property
+    def event_labels(self):
+        """List of unique event labels in the meta data.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        labels: list
+            List of event labels in alphabetical order.
+        """
+
+        labels = []
+        for item in self.meta:
+            if 'event_label' in item and item['event_label'] not in labels:
+                labels.append(item['event_label'])
+        labels.sort()
+        return labels
+
+    @property
+    def event_label_count(self):
+        """Number of unique event labels in the meta data.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        event_label_count: integer
+            Number of unique event labels
+        """
+
+        return len(self.event_labels)
+
+    @property
+    def audio_tags(self):
+        """List of unique audio tags in the meta data.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        labels: list
+            List of audio tags in alphabetical order.
+        """
+
+        tags = []
+        for item in self.meta:
+            if 'tags' in item:
+                for tag in item['tags']:
+                    if tag and tag not in tags:
+                        tags.append(tag)
+        tags.sort()
+        return tags
+
+    @property
+    def audio_tag_count(self):
+        """Number of unique audio tags in the meta data.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        audio_tag_count: integer
+            Number of unique audio tags
+        """
+
+        return len(self.audio_tags)
+
+    def __getitem__(self, i):
+        """Getting meta data item
+
+        Parameters
+        ----------
+        i: integer
+            item id
+
+        Returns
+        -------
+        meta_data: dict
+            Meta data item
+        """
+        if i < len(self.meta):
+            return self.meta[i]
+        else:
+            return None
+
+    def __iter__(self):
+        """Iterator for meta data items
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+            Nothing
+        """
+
+        i = 0
+        meta = self[i]
+
+        # yield window while it's valid
+        while meta is not None:
+            yield meta
+            # get next item
+            i += 1
+            meta = self[i]
+
+    @staticmethod
+    def print_bytes(num_bytes):
+        """Output number of bytes according to locale and with IEC binary prefixes
+
+        Parameters
+        ----------
+        num_bytes : int
+            Bytes
+
+        Returns
+        -------
+        bytes: string
+            Human readable string
+        """
+
         KiB = 1024
         MiB = KiB * KiB
         GiB = KiB * MiB
@@ -75,9 +412,17 @@ class Dataset(object):
         return output
 
     def download(self):
+        """Download dataset over the internet to the local path
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+            Nothing
         """
-        Download dataset over the internet
-        """
+
         section_header('Download dataset')
         for item in self.package_list:
             try:
@@ -120,17 +465,38 @@ class Dataset(object):
         foot()
 
     def extract(self):
+        """Extract the dataset packages
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+            Nothing
         """
-        Extract the dataset package
-        """
+
         section_header('Extract dataset')
         for item in self.package_list:
             if item['local_package']:
                 if item['local_package'].endswith('.zip'):
+
                     with zipfile.ZipFile(item['local_package'], "r") as z:
+                        parts = []
+                        for name in z.namelist():
+                            if not name.endswith('/'):
+                                parts.append(name.split('/')[:-1])
+                        prefix = os.path.commonprefix(parts) or ''
+                        if prefix:
+                            prefix = '/'.join(prefix) + '/'
+                        offset = len(prefix)
+
                         members = z.infolist()
                         file_count = 1
+
                         for i, member in enumerate(members):
+                            if len(member.filename) > offset:
+                                member.filename = member.filename[offset:]
                             if not os.path.isfile(os.path.join(self.local_path, member.filename)):
                                 z.extract(member, self.local_path)
                             progress(title='Extracting', percentage=(file_count / float(len(members))),
@@ -148,12 +514,32 @@ class Dataset(object):
         foot()
 
     def on_after_extract(self):
+        """Dataset meta data preparation, this will be overloaded in dataset specific classes
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+            Nothing
         """
-        Dataset meta data preparation
-        """
+
         pass
 
     def get_filelist(self):
+        """List of files under local_path
+
+        Parameters
+        ----------
+        Nothing
+
+        Returns
+        -------
+        filelist: list
+            File list
+        """
+
         filelist = []
         for path, subdirs, files in os.walk(self.local_path):
             for name in files:
@@ -161,6 +547,19 @@ class Dataset(object):
         return filelist
 
     def check_filelist(self):
+        """Generates hash from file list and check does it matches with one saved in filelist.hash.
+        If some files have been deleted or added, checking will result False.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+        result: bool
+            Result
+        """
+
         if os.path.isfile(os.path.join(self.local_path, self.filelisthash_filename)):
             hash = load_text(os.path.join(self.local_path, self.filelisthash_filename))[0]
             if hash != get_parameter_hash(sorted(self.get_filelist())):
@@ -171,6 +570,17 @@ class Dataset(object):
             return False
 
     def save_filelist_hash(self):
+        """Generates file list hash, and saves it as filelist.hash under local_path.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+            Nothing
+        """
+
         filelist = self.get_filelist()
 
         filelist_hash_not_found = True
@@ -184,9 +594,15 @@ class Dataset(object):
         save_text(os.path.join(self.local_path, self.filelisthash_filename), get_parameter_hash(sorted(filelist)))
 
     def fetch(self):
-        """
-        Download, extract and prepare the dataset.
-        :return:
+        """Download, extract and prepare the dataset.
+
+        Parameters
+        ----------
+            Nothing
+
+        Returns
+        -------
+            Nothing
         """
 
         if not self.check_filelist():
@@ -197,136 +613,21 @@ class Dataset(object):
 
         return self
 
-    @property
-    def audio_files(self):
-        """
-        Get all audio files in the dataset
-        :return: file list with absolute paths
-        """
-        if self.files is None:
-            self.files = []
-            for item in self.package_list:
-                path = item['local_audio_path']
-                if path:
-                    l = os.listdir(path)
-                    for f in l:
-                        file_name, file_extension = os.path.splitext(f)
-                        if file_extension[1:] in self.audio_extensions:
-                            self.files.append(os.path.abspath(os.path.join(path, f)))
-            self.files.sort()
-        return self.files
-
-    @property
-    def audio_file_count(self):
-        """
-        Get number of audio files in dataset
-        :return: 
-        """
-        return len(self.audio_files)
-
-    @property
-    def meta(self):
-        if self.meta_data is None:
-            self.meta_data = []
-            meta_id = 0
-            if os.path.isfile(self.meta_file):
-                f = open(self.meta_file, 'rt')
-                try:
-                    reader = csv.reader(f, delimiter='\t')
-                    for row in reader:
-                        if len(row) == 2:
-                            # Scene meta
-                            self.meta_data.append({'file': row[0], 'scene_label': row[1].rstrip().strip()})
-                        elif len(row) == 4:
-                            # Audio tagging meta
-                            self.meta_data.append(
-                                {'file': row[0], 'scene_label': row[1].rstrip().strip(), 'tag_string': row[2],
-                                 'tags': row[3].split(';')})
-                        elif len(row) == 6:
-                            # Event meta
-                            self.meta_data.append({'file': row[0],
-                                                   'scene_label': row[1].rstrip().strip(),
-                                                   'event_onset': float(row[2]),
-                                                   'event_offset': float(row[3]),
-                                                   'event_label': row[4],
-                                                   'event_type': row[5],
-                                                   'id': meta_id
-                                                   })
-                        meta_id += 1
-                finally:
-                    f.close()
-            else:
-                raise IOError("Meta file missing [%s]" % self.meta_file)
-
-        return self.meta_data
-
-    @property
-    def meta_count(self):
-        return len(self.meta)
-
-    @property
-    def fold_count(self):
-        return self.evaluation_folds
-
-    @property
-    def scene_label_count(self):
-        return len(self.scene_labels)
-
-    @property
-    def scene_labels(self):
-        labels = []
-        for item in self.meta:
-            if 'scene_label' in item and item['scene_label'] not in labels:
-                labels.append(item['scene_label'])
-        labels.sort()
-        return labels
-
-    @property
-    def event_label_count(self):
-        return len(self.event_labels)
-
-    @property
-    def event_labels(self):
-        labels = []
-        for item in self.meta:
-            if 'event_label' in item and item['event_label'] not in labels:
-                labels.append(item['event_label'])
-        labels.sort()
-        return labels
-
-    @property
-    def audio_tags(self):
-        tags = []
-        for item in self.meta:
-            if 'tags' in item:
-                for tag in item['tags']:
-                    if tag and tag not in tags:
-                        tags.append(tag)
-        tags.sort()
-        return tags
-
-    @property
-    def audio_tag_count(self):
-        return len(self.audio_tags)
-
-    def __getitem__(self, i):
-        if i < len(self.meta):
-            return self.meta[i]
-        else:
-            return None
-
-    def __iter__(self):
-        i = 0
-        meta = self[i]
-
-        # yield window while it's valid
-        while (meta is not None):
-            yield meta
-            # get next item
-            i += 1
-            meta = self[i]
-
     def train(self, fold=0):
+        """List of training items.
+
+        Parameters
+        ----------
+        fold: integer
+            Fold id, if zero all meta data is returned.
+            (Default value=0)
+
+        Returns
+        -------
+        list: list of dicts
+            List containing all meta data assigned to training set for given fold.
+        """
+
         if fold not in self.evaluation_data_train:
             self.evaluation_data_train[fold] = []
             if fold > 0:
@@ -374,6 +675,20 @@ class Dataset(object):
         return self.evaluation_data_train[fold]
 
     def test(self, fold=0):
+        """List of testing items.
+
+        Parameters
+        ----------
+        fold: integer
+            Fold id, if zero all meta data is returned.
+            (Default value=0)
+
+        Returns
+        -------
+        list: list of dicts
+            List containing all meta data assigned to testing set for given fold.
+        """
+
         if fold not in self.evaluation_data_test:
             self.evaluation_data_test[fold] = []
             if fold > 0:
@@ -393,12 +708,39 @@ class Dataset(object):
         return self.evaluation_data_test[fold]
 
     def folds(self, mode='folds'):
+        """List of fold ids
+
+        Parameters
+        ----------
+        mode: string
+            Fold setup type, possible values are 'folds' and 'full'. In 'full' mode fold number is set 0 and all data is used for training.
+            (Default value=folds)
+
+        Returns
+        -------
+        list: list of integers
+            Fold ids
+        """
+
         if mode == 'folds':
             return range(1, self.evaluation_folds + 1)
         elif mode == 'full':
             return [0]
 
     def file_meta(self, file):
+        """Meta data for given file
+
+        Parameters
+        ----------
+        file: string
+            File name
+
+        Returns
+        -------
+        list: list of dicts
+            List containing all meta data related to given file.
+        """
+
         file = self.absolute_to_relative(file)
         file_meta = []
         for item in self.meta:
@@ -408,20 +750,51 @@ class Dataset(object):
         return file_meta
 
     def relative_to_absolute_path(self, path):
+        """Converts relative path into absolute path.
+
+        Parameters
+        ----------
+        path: string
+            Relative path
+
+        Returns
+        -------
+        path: string
+            Absolute path
+        """
         return os.path.abspath(os.path.join(self.local_path, path))
 
     def absolute_to_relative(self, path):
+        """Converts absolute path into relative path.
+
+        Parameters
+        ----------
+        path: string
+            Absolute path
+
+        Returns
+        -------
+        path: string
+            Relative path
+        """
         if path.startswith(os.path.abspath(self.local_path)):
             return os.path.relpath(path, self.local_path)
         else:
             return path
 
+
+# =====================================================
 # DCASE 2016
 # =====================================================
-# TUT Acoustic scenes 2016 development and evaluation sets
 class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
+    """TUT Acoustic scenes 2016 development dataset
+
+    This dataset is used in DCASE2016 - Task 1, Acoustic scene classification
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'TUT-acoustic-scenes-2016-development'
+        Dataset.__init__(self, data_path=data_path, name='TUT-acoustic-scenes-2016-development')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
         self.name_remote = 'TUT Acoustic Scenes 2016 development'
@@ -433,14 +806,57 @@ class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
 
         self.evaluation_folds = 4
 
-        Dataset.__init__(self, data_path=data_path)
-
         self.package_list = [
             {
                 'remote_package': None,
                 'local_package': None,
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.meta.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.meta.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.1.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.1.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.2.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.2.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.3.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.3.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.4.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.4.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.5.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.5.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.6.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.6.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.7.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.7.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.8.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.8.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            }
         ]
 
     def on_after_extract(self):
@@ -478,9 +894,16 @@ class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
                 f.close()
             foot()
 
+
 class TUTAcousticScenes_2016_EvaluationSet(Dataset):
+    """TUT Acoustic scenes 2016 evaluation dataset
+
+    This dataset is used in DCASE2016 - Task 1, Acoustic scene classification
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'TUT-acoustic-scenes-2016-evaluation'
+        Dataset.__init__(self, data_path=data_path, name='TUT-acoustic-scenes-2016-evaluation')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
         self.name_remote = 'TUT Acoustic Scenes 2016 evaluation'
@@ -491,8 +914,6 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
         self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
 
         self.evaluation_folds = 1
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
@@ -529,11 +950,19 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
                 f.close()
             foot()
 
+    def train(self, fold=0):
+        raise IOError('Train setup not available.')
+
 
 # TUT Sound events 2016 development and evaluation sets
 class TUTSoundEvents_2016_DevelopmentSet(Dataset):
+    """TUT Sound events 2016 development dataset
+
+    This dataset is used in DCASE2016 - Task 3, Real-life audio sound event detection
+
+    """
     def __init__(self, data_path='data'):
-        self.name = 'TUT-sound-events-2016-development'
+        Dataset.__init__(self, data_path=data_path, name='TUT-sound-events-2016-development')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
         self.name_remote = 'TUT Sound Events 2016 development'
@@ -544,8 +973,6 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
         self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
 
         self.evaluation_folds = 4
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
@@ -675,9 +1102,16 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
                     data.append(item)
             return data
 
+
 class TUTSoundEvents_2016_EvaluationSet(Dataset):
+    """TUT Sound events 2016 evaluation dataset
+
+    This dataset is used in DCASE2016 - Task 3, Real-life audio sound event detection
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'TUT-sound-events-2016-evaluation'
+        Dataset.__init__(self, data_path=data_path, name='TUT-sound-events-2016-evaluation')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
         self.name_remote = 'TUT Sound Events 2016 evaluation'
@@ -688,8 +1122,6 @@ class TUTSoundEvents_2016_EvaluationSet(Dataset):
         self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
 
         self.evaluation_folds = 1
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
@@ -708,6 +1140,7 @@ class TUTSoundEvents_2016_EvaluationSet(Dataset):
                 'local_audio_path': os.path.join(self.local_path, 'audio', 'residential_area'),
             },
         ]
+
     @property
     def scene_labels(self):
         labels = ['home', 'residential_area']
@@ -787,10 +1220,11 @@ class TUTSoundEvents_2016_EvaluationSet(Dataset):
                     data.append(item)
             return data
 
+
 # CHIME home
 class CHiMEHome_DomesticAudioTag_DevelopmentSet(Dataset):
     def __init__(self, data_path=None):
-        self.name = 'CHiMeHome-audiotag-development'
+        Dataset.__init__(self, data_path=data_path, name = 'CHiMeHome-audiotag-development')
 
         self.authors = 'Peter Foster, Siddharth Sigtia, Sacha Krstulovic, Jon Barker, and Mark Plumbley'
         self.name_remote = 'The CHiME-Home dataset is a collection of annotated domestic environment audio recordings.'
@@ -801,8 +1235,6 @@ class CHiMEHome_DomesticAudioTag_DevelopmentSet(Dataset):
         self.microphone_model = 'Unknown'
 
         self.evaluation_folds = 10
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
@@ -957,13 +1389,18 @@ class CHiMEHome_DomesticAudioTag_DevelopmentSet(Dataset):
 
                 fold+= 1
 
-# Legacy datasets           
+
+# Legacy datasets
+# =====================================================
 # DCASE 2013
 # =====================================================
-# Acoustic scenes
 class DCASE2013_Scene_DevelopmentSet(Dataset):
+    """DCASE 2013 Acoustic scene classification, development dataset
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'DCASE2013-scene-development'
+        Dataset.__init__(self, data_path=data_path, name='DCASE2013-scene-development')
 
         self.authors = 'Dimitrios Giannoulis, Emmanouil Benetos, Dan Stowell, and Mark Plumbley'
         self.name_remote = 'IEEE AASP 2013 CASA Challenge - Public Dataset for Scene Classification Task'
@@ -974,8 +1411,6 @@ class DCASE2013_Scene_DevelopmentSet(Dataset):
         self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
 
         self.evaluation_folds = 5
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
@@ -1050,9 +1485,14 @@ class DCASE2013_Scene_DevelopmentSet(Dataset):
                 fold += 1
             foot()
 
-class DCASE2013_Scene_ChallengeSet(DCASE2013_Scene_DevelopmentSet):
+
+class DCASE2013_Scene_EvaluationSet(DCASE2013_Scene_DevelopmentSet):
+    """DCASE 2013 Acoustic scene classification, evaluation dataset
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'DCASE2013-scene-challenge'
+        Dataset.__init__(self, data_path=data_path, name='DCASE2013-scene-challenge')
 
         self.authors = 'Dimitrios Giannoulis, Emmanouil Benetos, Dan Stowell, and Mark Plumbley'
         self.name_remote = 'IEEE AASP 2013 CASA Challenge - Private Dataset for Scene Classification Task'
@@ -1064,8 +1504,6 @@ class DCASE2013_Scene_ChallengeSet(DCASE2013_Scene_DevelopmentSet):
 
         self.evaluation_folds = 5
 
-        Dataset.__init__(self, data_path=data_path)
-
         self.package_list = [
             {
                 'remote_package': 'https://archive.org/download/dcase2013_scene_classification_testset/scenes_stereo_testset.zip',
@@ -1073,6 +1511,7 @@ class DCASE2013_Scene_ChallengeSet(DCASE2013_Scene_DevelopmentSet):
                 'local_audio_path': os.path.join(self.local_path, 'scenes_stereo_testset'),
             }
         ]
+
     def on_after_extract(self):
         # Make legacy dataset compatible with DCASE2016 dataset scheme
         if not os.path.isfile(self.meta_file) or 1:
@@ -1138,10 +1577,15 @@ class DCASE2013_Scene_ChallengeSet(DCASE2013_Scene_DevelopmentSet):
                 fold += 1
             foot()
 
+
 # Sound events
 class DCASE2013_Event_DevelopmentSet(Dataset):
+    """DCASE 2013 Sound event detection, development dataset
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'DCASE2013-event-development'
+        Dataset.__init__(self, data_path=data_path, name='DCASE2013-event-development')
 
         self.authors = 'Dimitrios Giannoulis, Emmanouil Benetos, Dan Stowell, and Mark Plumbley'
         self.name_remote = 'IEEE AASP CASA Challenge - Public Dataset for Event Detection Task'
@@ -1152,8 +1596,6 @@ class DCASE2013_Event_DevelopmentSet(Dataset):
         self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
 
         self.evaluation_folds = 5
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
@@ -1270,9 +1712,14 @@ class DCASE2013_Event_DevelopmentSet(Dataset):
 
                 fold += 1
 
-class DCASE2013_Event_ChallengeSet(Dataset):
+
+class DCASE2013_Event_EvaluationSet(Dataset):
+    """DCASE 2013 Sound event detection, evaluation dataset
+
+    """
+
     def __init__(self, data_path='data'):
-        self.name = 'DCASE2013-event-challenge'
+        Dataset.__init__(self, data_path=data_path, name='DCASE2013-event-challenge')
 
         self.authors = 'Dimitrios Giannoulis, Emmanouil Benetos, Dan Stowell, and Mark Plumbley'
         self.name_remote = 'IEEE AASP CASA Challenge - Private Dataset for Event Detection Task'
@@ -1283,8 +1730,6 @@ class DCASE2013_Event_ChallengeSet(Dataset):
         self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
 
         self.evaluation_folds = 5
-
-        Dataset.__init__(self, data_path=data_path)
 
         self.package_list = [
             {
