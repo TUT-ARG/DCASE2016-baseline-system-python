@@ -8,7 +8,7 @@ Systems:
 - Task 1 - Acoustic scene classification
 - Task 3 - Real life audio sound event detection
 
-Author
+Authors
 - Toni Heittola (<toni.heittola@tut.fi>, <http://www.cs.tut.fi/~heittolt/>)
 - Annamaria Mesaros (<annamaria.mesaros@tut.fi>, <http://www.cs.tut.fi/~mesaros/>)
 - Tuomas Virtanen (<tuomas.virtanen@tut.fi>, <http://www.cs.tut.fi/~tuomasv/>)

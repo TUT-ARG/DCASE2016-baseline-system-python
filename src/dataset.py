@@ -834,47 +834,52 @@ class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.meta.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.doc.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.doc.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.meta.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.meta.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.1.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.1.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.1.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.2.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.2.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.2.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.3.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.3.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.3.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.4.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.4.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.4.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.5.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.5.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.5.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.6.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.6.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.6.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.7.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.7.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.7.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/~heittolt/dev/TUT-acoustic-scenes-2016-development.audio.8.zip',
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.audio.8.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.audio.8.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             }
@@ -1011,6 +1016,22 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
                 'local_package': None,
                 'local_audio_path': os.path.join(self.local_path, 'audio', 'home'),
             },
+            {
+                'remote_package': 'https://zenodo.org/record/45759/files/TUT-sound-events-2016-development.doc.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2016-development.doc.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/45759/files/TUT-sound-events-2016-development.meta.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2016-development.meta.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/45759/files/TUT-sound-events-2016-development.audio.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2016-development.audio.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+
         ]
 
     def event_label_count(self, scene_label=None):
