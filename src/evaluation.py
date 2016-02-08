@@ -3,8 +3,45 @@ import numpy
 import math
 from sklearn import metrics
 
+
 class DCASE2016_SceneClassification_Metrics():
-    def __init__(self, class_list=None):
+    """DCASE 2016 scene classification metrics
+
+    Examples
+    --------
+
+        >>> dcase2016_scene_metric = DCASE2016_SceneClassification_Metrics(class_list=dataset.scene_labels)
+        >>> for fold in dataset.folds(mode=dataset_evaluation_mode):
+        >>>     dcase2016_scene_metric_fold = DCASE2016_SceneClassification_Metrics(class_list=dataset.scene_labels)
+        >>>     results = []
+        >>>     result_filename = get_result_filename(fold=fold, path=result_path)
+        >>>
+        >>>     if os.path.isfile(result_filename):
+        >>>         with open(result_filename, 'rt') as f:
+        >>>             for row in csv.reader(f, delimiter='\t'):
+        >>>                 results.append(row)
+        >>>
+        >>>     y_true = []
+        >>>     y_pred = []
+        >>>     for result in results:
+        >>>         y_true.append(dataset.file_meta(result[0])[0]['scene_label'])
+        >>>         y_pred.append(result[1])
+        >>>
+        >>>     dcase2016_scene_metric.evaluate(system_output=y_pred, annotated_ground_truth=y_true)
+        >>>
+        >>> results = dcase2016_scene_metric.results()
+
+    """
+
+    def __init__(self, class_list):
+        """__init__ method.
+
+        Parameters
+        ----------
+        class_list : list
+            Evaluated scene labels in the list
+
+        """
         self.accuracies_per_class = None
         self.Nsys = None
         self.Nref = None
@@ -18,11 +55,49 @@ class DCASE2016_SceneClassification_Metrics():
         return self.results()
 
     def accuracies(self, y_true, y_pred, labels):
+        """Calculate accuracy
+
+        Parameters
+        ----------
+        y_true : numpy.array
+            Ground truth array, list of scene labels
+
+        y_pred : numpy.array
+            System output array, list of scene labels
+
+        labels : list
+            list of scene labels
+
+        Returns
+        -------
+        array : numpy.array [shape=(number of scene labels,)]
+            Accuracy per scene label class
+
+        """
+
         confusion_matrix = metrics.confusion_matrix(y_true=y_true, y_pred=y_pred, labels=labels).astype(float)
         return numpy.divide(numpy.diag(confusion_matrix), numpy.sum(confusion_matrix, 1)+self.eps)
 
-    def evaluate(self, system_output, annotated_groundtruth):
-        accuracies_per_class = self.accuracies(y_true=system_output, y_pred=annotated_groundtruth, labels=self.class_list)
+    def evaluate(self, annotated_ground_truth, system_output):
+        """Evaluate system output and annotated ground truth pair.
+
+        Use results method to get results.
+
+        Parameters
+        ----------
+        annotated_ground_truth : numpy.array
+            Ground truth array, list of scene labels
+
+        system_output : numpy.array
+            System output array, list of scene labels
+
+        Returns
+        -------
+        nothing
+
+        """
+
+        accuracies_per_class = self.accuracies(y_true=system_output, y_pred=annotated_ground_truth, labels=self.class_list)
 
         if self.accuracies_per_class is None:
             self.accuracies_per_class = accuracies_per_class
@@ -37,7 +112,7 @@ class DCASE2016_SceneClassification_Metrics():
                 if item == class_label:
                     Nsys[class_id] += 1
 
-            for item in annotated_groundtruth:
+            for item in annotated_ground_truth:
                 if item == class_label:
                     Nref[class_id] += 1
 
@@ -52,6 +127,39 @@ class DCASE2016_SceneClassification_Metrics():
             self.Nsys = numpy.vstack((self.Nsys, Nsys))
 
     def results(self):
+        """Get results
+
+        Outputs results in dict, format:
+
+            {
+                'class_wise_data':
+                    {
+                        'office': {
+                            'Nsys': 10,
+                            'Nref': 7,
+                        },
+                    }
+                'class_wise_accuracy':
+                    {
+                        'office': 0.6,
+                        'home': 0.4,
+                    }
+                'overall_accuracy': numpy.mean(self.accuracies_per_class)
+                'Nsys': 100,
+                'Nref': 100,
+            }
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        results : dict
+            Results dict
+
+        """
+
         results = {
             'class_wise_data': {},
             'class_wise_accuracy': {},
@@ -80,14 +188,38 @@ class DCASE2016_SceneClassification_Metrics():
 
         return results
 
+
 class EventDetectionMetrics(object):
-    # Base class for sound event detection metrics
+    """Baseclass for sound event metric classes.
+    """
 
     def __init__(self, class_list):
+        """__init__ method.
+
+        Parameters
+        ----------
+        class_list : list
+            List of class labels to be evaluated.
+
+        """
+
         self.class_list = class_list
         self.eps = numpy.spacing(1)
 
     def max_event_offset(self, data):
+        """Get maximum event offset from event list
+
+        Parameters
+        ----------
+        data : list
+            Event list, list of event dicts
+
+        Returns
+        -------
+        max : float > 0
+            Maximum event offset
+        """
+
         max = 0
         for event in data:
             if event['event_offset'] > max:
@@ -95,6 +227,23 @@ class EventDetectionMetrics(object):
         return max
 
     def list_to_roll(self, data, time_resolution=0.01):
+        """Convert event list into event roll.
+        Event roll is binary matrix indicating event activity withing time segment defined by time_resolution.
+
+        Parameters
+        ----------
+        data : list
+            Event list, list of event dicts
+
+        time_resolution : float > 0
+            Time resolution used when converting event into event roll.
+
+        Returns
+        -------
+        event_roll : numpy.ndarray [shape=(math.ceil(data_length * 1 / time_resolution) + 1, amount of classes)]
+            Event roll
+        """
+
         # Initialize
         data_length = self.max_event_offset(data)
         event_roll = numpy.zeros((math.ceil(data_length * 1 / time_resolution) + 1, len(self.class_list)))
@@ -110,8 +259,64 @@ class EventDetectionMetrics(object):
 
         return event_roll
 
+
 class DCASE2016_EventDetection_SegmentBasedMetrics(EventDetectionMetrics):
+    """DCASE2016 Segment based metrics for sound event detection
+
+    Supported metrics:
+    - Overall
+        - Error rate (ER), Substitutions (S), Insertions (I), Deletions (D)
+        - F-score (F1)
+    - Class-wise
+        - Error rate (ER), Insertions (I), Deletions (D)
+        - F-score (F1)
+
+    Examples
+    --------
+
+    >>> overall_metrics_per_scene = {}
+    >>> for scene_id, scene_label in enumerate(dataset.scene_labels):
+    >>>     dcase2016_segment_based_metric = DCASE2016_EventDetection_SegmentBasedMetrics(class_list=dataset.event_labels(scene_label=scene_label))
+    >>>     for fold in dataset.folds(mode=dataset_evaluation_mode):
+    >>>         results = []
+    >>>         result_filename = get_result_filename(fold=fold, scene_label=scene_label, path=result_path)
+    >>>
+    >>>         if os.path.isfile(result_filename):
+    >>>             with open(result_filename, 'rt') as f:
+    >>>                 for row in csv.reader(f, delimiter='\t'):
+    >>>                     results.append(row)
+    >>>
+    >>>         for file_id, item in enumerate(dataset.test(fold,scene_label=scene_label)):
+    >>>             current_file_results = []
+    >>>             for result_line in results:
+    >>>                 if result_line[0] == dataset.absolute_to_relative(item['file']):
+    >>>                     current_file_results.append(
+    >>>                         {'file': result_line[0],
+    >>>                          'event_onset': float(result_line[1]),
+    >>>                          'event_offset': float(result_line[2]),
+    >>>                          'event_label': result_line[3]
+    >>>                          }
+    >>>                     )
+    >>>             meta = dataset.file_meta(dataset.absolute_to_relative(item['file']))
+    >>>         dcase2016_segment_based_metric.evaluate(system_output=current_file_results, annotated_ground_truth=meta)
+    >>> overall_metrics_per_scene[scene_label]['segment_based_metrics'] = dcase2016_segment_based_metric.results()
+
+    """
+
     def __init__(self, class_list, time_resolution=1.0):
+        """__init__ method.
+
+        Parameters
+        ----------
+        class_list : list
+            List of class labels to be evaluated.
+
+        time_resolution : float > 0
+            Time resolution used when converting event into event roll.
+            (Default value = 1.0)
+
+        """
+
         self.time_resolution = time_resolution
 
         self.overall = {
@@ -141,15 +346,35 @@ class DCASE2016_EventDetection_SegmentBasedMetrics(EventDetectionMetrics):
         EventDetectionMetrics.__init__(self, class_list=class_list)
 
     def __enter__(self):
+        # Initialize class and return it
         return self
 
     def __exit__(self, type, value, traceback):
+        # Finalize evaluation and return results
         return self.results()
 
-    def evaluate(self, system_output, annotated_groundtruth):
+    def evaluate(self, annotated_ground_truth, system_output):
+        """Evaluate system output and annotated ground truth pair.
+
+        Use results method to get results.
+
+        Parameters
+        ----------
+        annotated_ground_truth : numpy.array
+            Ground truth array, list of scene labels
+
+        system_output : numpy.array
+            System output array, list of scene labels
+
+        Returns
+        -------
+        nothing
+
+        """
+
         # Convert event list into frame-based representation
         system_event_roll = self.list_to_roll(data=system_output, time_resolution=self.time_resolution)
-        annotated_event_roll = self.list_to_roll(data=annotated_groundtruth, time_resolution=self.time_resolution)
+        annotated_event_roll = self.list_to_roll(data=annotated_ground_truth, time_resolution=self.time_resolution)
 
         # Fix durations of both event_rolls to be equal
         if annotated_event_roll.shape[0] > system_event_roll.shape[0]:
@@ -211,6 +436,55 @@ class DCASE2016_EventDetection_SegmentBasedMetrics(EventDetectionMetrics):
         return self
 
     def results(self):
+        """Get results
+
+        Outputs results in dict, format:
+
+            {
+                'overall':
+                    {
+                        'Pre':
+                        'Rec':
+                        'F':
+                        'ER':
+                        'S':
+                        'D':
+                        'I':
+                    }
+                'class_wise':
+                    {
+                        'office': {
+                            'Pre':
+                            'Rec':
+                            'F':
+                            'ER':
+                            'D':
+                            'I':
+                            'Nref':
+                            'Nsys':
+                            'Ntp':
+                            'Nfn':
+                            'Nfp':
+                        },
+                    }
+                'class_wise_average':
+                    {
+                        'F':
+                        'ER':
+                    }
+            }
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        results : dict
+            Results dict
+
+        """
+
         results = {'overall': {},
                    'class_wise': {},
                    'class_wise_average': {},
@@ -220,8 +494,6 @@ class DCASE2016_EventDetection_SegmentBasedMetrics(EventDetectionMetrics):
         results['overall']['Pre'] = self.overall['Ntp'] / (self.overall['Nsys'] + self.eps)
         results['overall']['Rec'] = self.overall['Ntp'] / self.overall['Nref']
         results['overall']['F'] = 2 * ((results['overall']['Pre'] * results['overall']['Rec']) / (results['overall']['Pre'] + results['overall']['Rec'] + self.eps))
-
-        #results['overall']['BACC'] = 0.5 * self.overall['Ntp'] / self.overall['Nref'] + 0.5 * self.overall['Ntn'] / (self.overall['Ntn'] + self.overall['Nfp'])
 
         results['overall']['ER'] = self.overall['ER'] / self.overall['Nref']
         results['overall']['S'] = self.overall['S'] / self.overall['Nref']
@@ -258,7 +530,66 @@ class DCASE2016_EventDetection_SegmentBasedMetrics(EventDetectionMetrics):
 
 
 class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
+    """DCASE2016 Event based metrics for sound event detection
+
+    Supported metrics:
+    - Overall
+        - Error rate (ER), Substitutions (S), Insertions (I), Deletions (D)
+        - F-score (F1)
+    - Class-wise
+        - Error rate (ER), Insertions (I), Deletions (D)
+        - F-score (F1)
+
+    Examples
+    --------
+
+    >>> overall_metrics_per_scene = {}
+    >>> for scene_id, scene_label in enumerate(dataset.scene_labels):
+    >>>     dcase2016_event_based_metric = DCASE2016_EventDetection_EventBasedMetrics(class_list=dataset.event_labels(scene_label=scene_label))
+    >>>     for fold in dataset.folds(mode=dataset_evaluation_mode):
+    >>>         results = []
+    >>>         result_filename = get_result_filename(fold=fold, scene_label=scene_label, path=result_path)
+    >>>
+    >>>         if os.path.isfile(result_filename):
+    >>>             with open(result_filename, 'rt') as f:
+    >>>                 for row in csv.reader(f, delimiter='\t'):
+    >>>                     results.append(row)
+    >>>
+    >>>         for file_id, item in enumerate(dataset.test(fold,scene_label=scene_label)):
+    >>>             current_file_results = []
+    >>>             for result_line in results:
+    >>>                 if result_line[0] == dataset.absolute_to_relative(item['file']):
+    >>>                     current_file_results.append(
+    >>>                         {'file': result_line[0],
+    >>>                          'event_onset': float(result_line[1]),
+    >>>                          'event_offset': float(result_line[2]),
+    >>>                          'event_label': result_line[3]
+    >>>                          }
+    >>>                     )
+    >>>             meta = dataset.file_meta(dataset.absolute_to_relative(item['file']))
+    >>>         dcase2016_event_based_metric.evaluate(system_output=current_file_results, annotated_ground_truth=meta)
+    >>> overall_metrics_per_scene[scene_label]['event_based_metrics'] = dcase2016_event_based_metric.results()
+
+    """
+
     def __init__(self, class_list, time_resolution=1.0, t_collar=0.2):
+        """__init__ method.
+
+        Parameters
+        ----------
+        class_list : list
+            List of class labels to be evaluated.
+
+        time_resolution : float > 0
+            Time resolution used when converting event into event roll.
+            (Default value = 1.0)
+
+        t_collar : float > 0
+            Time collar for event onset and offset condition
+            (Default value = 0.2)
+
+        """
+
         self.time_resolution = time_resolution
         self.t_collar = t_collar
 
@@ -285,29 +616,49 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         EventDetectionMetrics.__init__(self, class_list=class_list)
 
     def __enter__(self):
+        # Initialize class and return it
         return self
 
     def __exit__(self, type, value, traceback):
+        # Finalize evaluation and return results
         return self.results()
 
-    def evaluate(self, system_output, annotated_groundtruth):
+    def evaluate(self, annotated_ground_truth, system_output):
+        """Evaluate system output and annotated ground truth pair.
+
+        Use results method to get results.
+
+        Parameters
+        ----------
+        annotated_ground_truth : numpy.array
+            Ground truth array, list of scene labels
+
+        system_output : numpy.array
+            System output array, list of scene labels
+
+        Returns
+        -------
+        nothing
+
+        """
+
         # Overall metrics
 
         # Total number of detected and reference events
         Nsys = len(system_output)
-        Nref = len(annotated_groundtruth)
+        Nref = len(annotated_ground_truth)
 
         sys_correct = numpy.zeros(Nsys, dtype=bool)
         ref_correct = numpy.zeros(Nref, dtype=bool)
 
         # Number of correctly transcribed events, onset within a t_collar range
-        for j in range(0, len(annotated_groundtruth)):
+        for j in range(0, len(annotated_ground_truth)):
             for i in range(0, len(system_output)):
-                label_condition = annotated_groundtruth[j]['event_label'] == system_output[i]['event_label']
-                onset_condition = self.onset_condition(annotated_groundtruth[j], system_output[i], t_collar=self.t_collar)
+                label_condition = annotated_ground_truth[j]['event_label'] == system_output[i]['event_label']
+                onset_condition = self.onset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
 
                 # Offset within a t_collar range or within 20% of ground-truth event's duration
-                offset_condition = self.offset_condition(annotated_groundtruth[j], system_output[i], t_collar=self.t_collar)
+                offset_condition = self.offset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
 
                 if label_condition and onset_condition and offset_condition:
                     ref_correct[j] = True
@@ -322,10 +673,10 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         Nsubs = 0
         for j in ref_leftover[0:20]:
             for i in sys_leftover[0:20]:
-                onset_condition = self.onset_condition(annotated_groundtruth[j], system_output[i], t_collar=self.t_collar)
+                onset_condition = self.onset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
 
                 # Offset within a t_collar range or within 20% of ground-truth event's duration
-                offset_condition = self.offset_condition(annotated_groundtruth[j], system_output[i], t_collar=self.t_collar)
+                offset_condition = self.offset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
 
                 if onset_condition and offset_condition:
                     Nsubs += 1
@@ -348,8 +699,8 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
             Ntp = 0.0
 
             # Count event frequencies in the ground truth
-            for i in range(0, len(annotated_groundtruth)):
-                if annotated_groundtruth[i]['event_label'] == class_label:
+            for i in range(0, len(annotated_ground_truth)):
+                if annotated_ground_truth[i]['event_label'] == class_label:
                     Nref += 1
 
             # Count event frequencies in the system output
@@ -357,13 +708,13 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
                 if system_output[i]['event_label'] == class_label:
                     Nsys += 1
 
-            for j in range(0, len(annotated_groundtruth)):
+            for j in range(0, len(annotated_ground_truth)):
                 for i in range(0, len(system_output)):
-                    if annotated_groundtruth[j]['event_label'] == class_label and system_output[i]['event_label'] == class_label:
-                        onset_condition = self.onset_condition(annotated_groundtruth[j], system_output[i], t_collar=self.t_collar)
+                    if annotated_ground_truth[j]['event_label'] == class_label and system_output[i]['event_label'] == class_label:
+                        onset_condition = self.onset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
 
                         # Offset within a +/-100 ms range or within 20% of ground-truth event's duration
-                        offset_condition = self.offset_condition(annotated_groundtruth[j], system_output[i], t_collar=self.t_collar)
+                        offset_condition = self.offset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
 
                         if onset_condition and offset_condition:
                             Ntp += 1
@@ -380,13 +731,116 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
             self.class_wise[class_label]['Nfn'] += Nfn
 
     def onset_condition(self, annotated_event, system_event, t_collar=0.200):
+        """Onset condition, checked does the event pair fulfill condition
+
+        Condition:
+
+        - event onsets are within t_collar each other
+
+        Parameters
+        ----------
+        annotated_event : dict
+            Event dict
+
+        system_event : dict
+            Event dict
+
+        t_collar : float > 0
+            Defines how close event onsets have to be in order to be considered match. In seconds.
+            (Default value = 0.2)
+
+        Returns
+        -------
+        result : bool
+            Condition result
+
+        """
+
         return math.fabs(annotated_event['event_onset'] - system_event['event_onset']) <= t_collar
 
     def offset_condition(self, annotated_event, system_event, t_collar=0.200, percentage_of_length=0.5):
+        """Offset condition, checked does the event pair fulfill condition
+
+        Condition:
+
+        - event offsets are within t_collar each other
+        or
+        - system event offset is within the percentage_of_length*annotated event_length
+
+        Parameters
+        ----------
+        annotated_event : dict
+            Event dict
+
+        system_event : dict
+            Event dict
+
+        t_collar : float > 0
+            Defines how close event onsets have to be in order to be considered match. In seconds.
+            (Default value = 0.2)
+
+        percentage_of_length : float [0-1]
+
+
+        Returns
+        -------
+        result : bool
+            Condition result
+
+        """
         annotated_length = annotated_event['event_offset'] - annotated_event['event_onset']
         return math.fabs(annotated_event['event_offset'] - system_event['event_offset']) <= max(t_collar, percentage_of_length * annotated_length)
 
     def results(self):
+        """Get results
+
+        Outputs results in dict, format:
+
+            {
+                'overall':
+                    {
+                        'Pre':
+                        'Rec':
+                        'F':
+                        'ER':
+                        'S':
+                        'D':
+                        'I':
+                    }
+                'class_wise':
+                    {
+                        'office': {
+                            'Pre':
+                            'Rec':
+                            'F':
+                            'ER':
+                            'D':
+                            'I':
+                            'Nref':
+                            'Nsys':
+                            'Ntp':
+                            'Nfn':
+                            'Nfp':
+                        },
+                    }
+                'class_wise_average':
+                    {
+                        'F':
+                        'ER':
+                    }
+            }
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        results : dict
+            Results dict
+
+        """
+
         results = {
             'overall': {},
             'class_wise': {},
@@ -433,13 +887,36 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
 
         return results
 
-class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
-    # DCASE2013 specific metrics, converted from the provided Matlab implementation
 
-    def frame_based(self, system_output, annotated_groundtruth, resolution=0.01):
+class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
+    """Lecagy DCASE2013 metrics, converted from the provided Matlab implementation
+
+    Supported metrics:
+    - Frame based
+        - F-score (F)
+        - AEER
+    - Event based
+        - Onset
+            - F-Score (F)
+            - AEER
+        - Onset-offset
+            - F-Score (F)
+            - AEER
+    - Class based
+        - Onset
+            - F-Score (F)
+            - AEER
+        - Onset-offset
+            - F-Score (F)
+            - AEER
+    """
+
+    #
+
+    def frame_based(self, annotated_ground_truth, system_output, resolution=0.01):
         # Convert event list into frame-based representation
         system_event_roll = self.list_to_roll(data=system_output, time_resolution=resolution)
-        annotated_event_roll = self.list_to_roll(data=annotated_groundtruth, time_resolution=resolution)
+        annotated_event_roll = self.list_to_roll(data=annotated_ground_truth, time_resolution=resolution)
 
         # Fix durations of both event_rolls to be equal
         if annotated_event_roll.shape[0] > system_event_roll.shape[0]:
@@ -468,25 +945,25 @@ class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
 
         return results
 
-    def event_based(self, system_output, annotated_groundtruth):
+    def event_based(self, annotated_ground_truth, system_output):
         # Event-based evaluation for event detection task
         # outputFile: the output of the event detection system
         # GTFile: the ground truth list of events
 
         # Total number of detected and reference events
         Ntot = len(system_output)
-        Nref = len(annotated_groundtruth)
+        Nref = len(annotated_ground_truth)
 
         # Number of correctly transcribed events, onset within a +/-100 ms range
         Ncorr = 0
         NcorrOff = 0
-        for j in range(0, len(annotated_groundtruth)):
+        for j in range(0, len(annotated_ground_truth)):
             for i in range(0, len(system_output)):
-                if annotated_groundtruth[j]['event_label'] == system_output[i]['event_label'] and (math.fabs(annotated_groundtruth[j]['event_onset'] - system_output[i]['event_onset']) <= 0.1):
+                if annotated_ground_truth[j]['event_label'] == system_output[i]['event_label'] and (math.fabs(annotated_ground_truth[j]['event_onset'] - system_output[i]['event_onset']) <= 0.1):
                     Ncorr += 1
 
                     # If offset within a +/-100 ms range or within 50% of ground-truth event's duration
-                    if math.fabs(annotated_groundtruth[j]['event_offset'] - system_output[i]['event_offset']) <= max(0.1, 0.5 * (annotated_groundtruth[j]['event_offset'] - annotated_groundtruth[j]['event_onset'])):
+                    if math.fabs(annotated_ground_truth[j]['event_offset'] - system_output[i]['event_offset']) <= max(0.1, 0.5 * (annotated_ground_truth[j]['event_offset'] - annotated_ground_truth[j]['event_onset'])):
                         NcorrOff += 1
 
                     break  # In order to not evaluate duplicates
@@ -520,7 +997,7 @@ class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
 
         return results
 
-    def class_based(self, system_output, annotated_groundtruth):
+    def class_based(self, annotated_ground_truth, system_output):
         # Class-wise event-based evaluation for event detection task
         # outputFile: the output of the event detection system
         # GTFile: the ground truth list of events
@@ -532,7 +1009,7 @@ class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
             Ntot[pos] += 1
 
         Nref = numpy.zeros((len(self.class_list), 1))
-        for event in annotated_groundtruth:
+        for event in annotated_ground_truth:
             pos = self.class_list.index(event['event_label'])
             Nref[pos] += 1
 
@@ -542,18 +1019,18 @@ class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
         Ncorr = numpy.zeros((len(self.class_list), 1))
         NcorrOff = numpy.zeros((len(self.class_list), 1))
 
-        for j in range(0, len(annotated_groundtruth)):
+        for j in range(0, len(annotated_ground_truth)):
             for i in range(0, len(system_output)):
-                if annotated_groundtruth[j]['event_label'] == system_output[i]['event_label'] and (
+                if annotated_ground_truth[j]['event_label'] == system_output[i]['event_label'] and (
                             math.fabs(
-                                    annotated_groundtruth[j]['event_onset'] - system_output[i]['event_onset']) <= 0.1):
+                                    annotated_ground_truth[j]['event_onset'] - system_output[i]['event_onset']) <= 0.1):
                     pos = self.class_list.index(system_output[i]['event_label'])
                     Ncorr[pos] += 1
 
                     # If offset within a +/-100 ms range or within 50% of ground-truth event's duration
-                    if math.fabs(annotated_groundtruth[j]['event_offset'] - system_output[i]['event_offset']) <= max(
+                    if math.fabs(annotated_ground_truth[j]['event_offset'] - system_output[i]['event_offset']) <= max(
                             0.1, 0.5 * (
-                                        annotated_groundtruth[j]['event_offset'] - annotated_groundtruth[j][
+                                        annotated_ground_truth[j]['event_offset'] - annotated_ground_truth[j][
                                         'event_onset'])):
                         pos = self.class_list.index(system_output[i]['event_label'])
                         NcorrOff[pos] += 1
@@ -596,7 +1073,7 @@ class DCASE2013_EventDetection_Metrics(EventDetectionMetrics):
 
 
 def main(argv):
-    # Example to show usage and required data structures
+    # Examples to show usage and required data structures
     class_list = ['class1', 'class2', 'class3']
     system_output = [
         {
@@ -636,15 +1113,15 @@ def main(argv):
 
     print 'DCASE2013'
     print 'Frame-based:', dcase2013metric.frame_based(system_output=system_output,
-                                                      annotated_groundtruth=annotated_groundtruth)
+                                                      annotated_ground_truth=annotated_groundtruth)
     print 'Event-based:', dcase2013metric.event_based(system_output=system_output,
-                                                      annotated_groundtruth=annotated_groundtruth)
+                                                      annotated_ground_truth=annotated_groundtruth)
     print 'Class-based:', dcase2013metric.class_based(system_output=system_output,
-                                                      annotated_groundtruth=annotated_groundtruth)
+                                                      annotated_ground_truth=annotated_groundtruth)
 
     dcase2016_metric = DCASE2016_EventDetection_SegmentBasedMetrics(class_list=class_list)
     print 'DCASE2016'
-    print dcase2016_metric.evaluate(system_output=system_output, annotated_groundtruth=annotated_groundtruth).results()
+    print dcase2016_metric.evaluate(system_output=system_output, annotated_ground_truth=annotated_groundtruth).results()
 
 
 if __name__ == "__main__":

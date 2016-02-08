@@ -24,7 +24,7 @@ class Dataset(object):
 
         Parameters
         ----------
-        data_path : string
+        data_path : str
             Basepath where the dataset is stored.
             (Default value='data')
 
@@ -98,12 +98,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        filelist: list
+        filelist : list
             File list with absolute paths
+
         """
 
         if self.files is None:
@@ -125,12 +126,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        filecount: integer
+        filecount : int
             Number of audio files
+
         """
 
         return len(self.audio_files)
@@ -141,12 +143,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        meta_data: list
+        meta_data : list
             List containing meta data as dict.
+
         """
 
         if self.meta_data is None:
@@ -189,12 +192,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        meta_item_count: integer
+        meta_item_count : int
             Meta data item count
+
         """
 
         return len(self.meta)
@@ -205,12 +209,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        fold_count: integer
+        fold_count : int
             Number of folds
+
         """
 
         return self.evaluation_folds
@@ -221,12 +226,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        labels: list
+        labels : list
             List of scene labels in alphabetical order.
+
         """
 
         labels = []
@@ -242,12 +248,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        scene_label_count: integer
-            Number of unique scene labels
+        scene_label_count : int
+            Number of unique scene labels.
+
         """
 
         return len(self.scene_labels)
@@ -258,12 +265,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        labels: list
+        labels : list
             List of event labels in alphabetical order.
+
         """
 
         labels = []
@@ -279,12 +287,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        event_label_count: integer
+        event_label_count : int
             Number of unique event labels
+
         """
 
         return len(self.event_labels)
@@ -295,12 +304,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        labels: list
+        labels : list
             List of audio tags in alphabetical order.
+
         """
 
         tags = []
@@ -318,12 +328,13 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-        audio_tag_count: integer
+        audio_tag_count : int
             Number of unique audio tags
+
         """
 
         return len(self.audio_tags)
@@ -333,12 +344,12 @@ class Dataset(object):
 
         Parameters
         ----------
-        i: integer
+        i : int
             item id
 
         Returns
         -------
-        meta_data: dict
+        meta_data : dict
             Meta data item
         """
         if i < len(self.meta):
@@ -351,11 +362,12 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-            Nothing
+        Nothing
+
         """
 
         i = 0
@@ -374,12 +386,12 @@ class Dataset(object):
 
         Parameters
         ----------
-        num_bytes : int
+        num_bytes : int > 0 [scalar]
             Bytes
 
         Returns
         -------
-        bytes: string
+        bytes : str
             Human readable string
         """
 
@@ -416,11 +428,12 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-            Nothing
+        Nothing
+
         """
 
         section_header('Download dataset')
@@ -574,11 +587,12 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-            Nothing
+        Nothing
+
         """
 
         filelist = self.get_filelist()
@@ -598,11 +612,12 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-            Nothing
+        Nothing
+
         """
 
         if not self.check_filelist():
@@ -618,14 +633,15 @@ class Dataset(object):
 
         Parameters
         ----------
-        fold: integer
+        fold : int > 0 [scalar]
             Fold id, if zero all meta data is returned.
             (Default value=0)
 
         Returns
         -------
-        list: list of dicts
+        list : list of dicts
             List containing all meta data assigned to training set for given fold.
+
         """
 
         if fold not in self.evaluation_data_train:
@@ -679,14 +695,15 @@ class Dataset(object):
 
         Parameters
         ----------
-        fold: integer
+        fold : int > 0 [scalar]
             Fold id, if zero all meta data is returned.
             (Default value=0)
 
         Returns
         -------
-        list: list of dicts
+        list : list of dicts
             List containing all meta data assigned to testing set for given fold.
+
         """
 
         if fold not in self.evaluation_data_test:
@@ -712,14 +729,15 @@ class Dataset(object):
 
         Parameters
         ----------
-        mode: string
+        mode : str {'folds','full'}
             Fold setup type, possible values are 'folds' and 'full'. In 'full' mode fold number is set 0 and all data is used for training.
             (Default value=folds)
 
         Returns
         -------
-        list: list of integers
+        list : list of integers
             Fold ids
+
         """
 
         if mode == 'folds':
@@ -732,13 +750,14 @@ class Dataset(object):
 
         Parameters
         ----------
-        file: string
+        file : str
             File name
 
         Returns
         -------
-        list: list of dicts
+        list : list of dicts
             List containing all meta data related to given file.
+
         """
 
         file = self.absolute_to_relative(file)
@@ -754,13 +773,14 @@ class Dataset(object):
 
         Parameters
         ----------
-        path: string
+        path : str
             Relative path
 
         Returns
         -------
-        path: string
+        path : str
             Absolute path
+
         """
         return os.path.abspath(os.path.join(self.local_path, path))
 
@@ -769,13 +789,14 @@ class Dataset(object):
 
         Parameters
         ----------
-        path: string
+        path : str
             Absolute path
 
         Returns
         -------
-        path: string
+        path : str
             Relative path
+
         """
         if path.startswith(os.path.abspath(self.local_path)):
             return os.path.relpath(path, self.local_path)
