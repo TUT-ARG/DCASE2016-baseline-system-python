@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 import numpy
 import math
 from sklearn import metrics
-
 
 class DCASE2016_SceneClassification_Metrics():
     """DCASE 2016 scene classification metrics
@@ -250,7 +252,7 @@ class EventDetectionMetrics(object):
 
         # Fill-in event_roll
         for event in data:
-            pos = self.class_list.index(event['event_label'])
+            pos = self.class_list.index(event['event_label'].rstrip())
 
             onset = math.floor(event['event_onset'] * 1 / time_resolution)
             offset = math.ceil(event['event_offset'] * 1 / time_resolution) + 1
@@ -860,7 +862,8 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         # Class-wise metrics
         class_wise_F = []
         class_wise_ER = []
-        for class_id, class_label in enumerate(self.class_list):
+        
+        for class_label in self.class_list:
             if class_label not in results['class_wise']:
                 results['class_wise'][class_label] = {}
 

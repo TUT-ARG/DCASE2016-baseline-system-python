@@ -2,18 +2,19 @@ DCASE2016 Baseline system
 =========================
 [Audio Research Group / Tampere University of Technology](http://arg.cs.tut.fi/)
 
-*Python implementations*
+*Python implementation*
 
 Systems:
 - Task 1 - Acoustic scene classification
-- Task 3 - Real life audio sound event detection
+- Task 3 - Sound event detection in real life audio
 
 Authors
 - Toni Heittola (<toni.heittola@tut.fi>, <http://www.cs.tut.fi/~heittolt/>)
 - Annamaria Mesaros (<annamaria.mesaros@tut.fi>, <http://www.cs.tut.fi/~mesaros/>)
 - Tuomas Virtanen (<tuomas.virtanen@tut.fi>, <http://www.cs.tut.fi/~tuomasv/>)
 
-# Table of Contents
+Table of Contents
+=================
 1. [Introduction](#1-introduction)
 2. [Installation](#2-installation)
 3. [Usage](#3-usage)
@@ -22,13 +23,14 @@ Authors
 6. [System parameters](#6-system-parameters)
 7. [Changelog](#7-changelog)
 8. [License](#8-license)
+
 1. Introduction
 ===============
 This document describes the Python implementation of the baseline systems for the [Detection and Classification of Acoustic Scenes and Events 2016 (DCASE2016) challenge](http://www.cs.tut.fi/sgn/arg/dcase2016/) **[tasks 1](#11-acoustic-scene-classification)** and **[task 3](#12-sound-event-detection)**. The challenge consists of four tasks:
 
 1. [Acoustic scene classification](http://www.cs.tut.fi/sgn/arg/dcase2016/task-acoustic-scene-classification)
-2. [Synthetic audio sound event detection](http://www.cs.tut.fi/sgn/arg/dcase2016/task-synthetic-sound-event-detection)
-3. [Real life audio sound event detection](http://www.cs.tut.fi/sgn/arg/dcase2016/task-real-life-sound-event-detection)
+2. [Sound event detection in synthetic audio](http://www.cs.tut.fi/sgn/arg/dcase2016/task-sound-event-detection-in-synthetic-audio)
+3. [Sound event detection in real life audio](http://www.cs.tut.fi/sgn/arg/dcase2016/task-sound-event-detection-in-real-life-audio)
 4. [Domestic audio tagging](http://www.cs.tut.fi/sgn/arg/dcase2016/task-audio-tagging)
 
 The baseline systems for task 1 and 3 shares the same basic approach: [MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum) based acoustic features and [GMM](https://en.wikipedia.org/wiki/Mixture_model) based classifier. The main motivation to have similar approaches for both tasks was to provide low entry level and allow easy switching between the tasks. 
@@ -71,13 +73,13 @@ Librosa is required for the feature extraction.
 For each task there is separate executable (.py file):
 
 1. *task1_scene_classification.py*, Acoustic scene classification
-3. *task3_real_life_audio_sound_event_detection.py*, Real life audio sound event detection
+3. *task3_sound_event_detection_in_real_life_audio.py*, Real life audio sound event detection
 
 Each system has two operating modes: **Development mode** and **Challenge mode**. 
 
-All the usage parameters are shown by `python task1_scene_classification.py -h` and `python task3_real_life_audio_sound_event_detection.py -h`
+All the usage parameters are shown by `python task1_scene_classification.py -h` and `python task3_sound_event_detection_in_real_life_audio.py -h`
 
-The system parameters are defined in `task1_scene_classification.yaml` and `task3_real_life_audio_sound_event_detection.yaml`. 
+The system parameters are defined in `task1_scene_classification.yaml` and `task3_sound_event_detection_in_real_life_audio.yaml`. 
 
 #### Development mode
 
@@ -276,7 +278,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 
 6. System parameters
 ====================
-All the parameters are set in `task1_scene_classification.yaml`, and `task3_real_life_audio_sound_event_detection.yaml`.
+All the parameters are set in `task1_scene_classification.yaml`, and `task3_sound_event_detection_in_real_life_audio.yaml`.
 
 **Controlling the system flow**
 

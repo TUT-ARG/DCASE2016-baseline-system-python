@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import urllib2
 import socket
@@ -5,7 +8,6 @@ import locale
 import zipfile
 import tarfile
 from sklearn.cross_validation import StratifiedShuffleSplit, KFold
-from IPython import embed
 
 from ui import *
 from general import *
@@ -150,6 +152,11 @@ class Dataset(object):
         meta_data : list
             List containing meta data as dict.
 
+        Raises
+        -------
+        IOError
+            meta file not found.
+
         """
 
         if self.meta_data is None:
@@ -162,27 +169,27 @@ class Dataset(object):
                     for row in reader:
                         if len(row) == 2:
                             # Scene meta
-                            self.meta_data.append({'file': row[0], 'scene_label': row[1].rstrip().strip()})
+                            self.meta_data.append({'file': row[0], 'scene_label': row[1].rstrip()})
                         elif len(row) == 4:
                             # Audio tagging meta
                             self.meta_data.append(
-                                {'file': row[0], 'scene_label': row[1].rstrip().strip(), 'tag_string': row[2],
+                                {'file': row[0], 'scene_label': row[1].rstrip(), 'tag_string': row[2].rstrip(),
                                  'tags': row[3].split(';')})
                         elif len(row) == 6:
                             # Event meta
                             self.meta_data.append({'file': row[0],
-                                                   'scene_label': row[1].rstrip().strip(),
+                                                   'scene_label': row[1].rstrip(),
                                                    'event_onset': float(row[2]),
                                                    'event_offset': float(row[3]),
-                                                   'event_label': row[4],
-                                                   'event_type': row[5],
+                                                   'event_label': row[4].rstrip(),
+                                                   'event_type': row[5].rstrip(),
                                                    'id': meta_id
                                                    })
                         meta_id += 1
                 finally:
                     f.close()
             else:
-                raise IOError("Meta file missing [%s]" % self.meta_file)
+                raise IOError("Meta file not found [%s]" % self.meta_file)
 
         return self.meta_data
 
@@ -276,8 +283,8 @@ class Dataset(object):
 
         labels = []
         for item in self.meta:
-            if 'event_label' in item and item['event_label'] not in labels:
-                labels.append(item['event_label'])
+            if 'event_label' in item and item['event_label'].rstrip() not in labels:
+                labels.append(item['event_label'].rstrip())
         labels.sort()
         return labels
 
@@ -406,21 +413,21 @@ class Dataset(object):
         locale.setlocale(locale.LC_ALL, '')
         output = locale.format("%d", num_bytes, grouping=True) + ' bytes'
         if num_bytes > YiB:
-            output += ' (%.3g YiB)' % (num_bytes / YiB)
+            output += ' (%.4g YiB)' % (num_bytes / YiB)
         elif num_bytes > ZiB:
-            output += ' (%.3g ZiB)' % (num_bytes / ZiB)
+            output += ' (%.4g ZiB)' % (num_bytes / ZiB)
         elif num_bytes > EiB:
-            output += ' (%.3g EiB)' % (num_bytes / EiB)
+            output += ' (%.4g EiB)' % (num_bytes / EiB)
         elif num_bytes > PiB:
-            output += ' (%.3g PiB)' % (num_bytes / PiB)
+            output += ' (%.4g PiB)' % (num_bytes / PiB)
         elif num_bytes > TiB:
-            output += ' (%.3g TiB)' % (num_bytes / TiB)
+            output += ' (%.4g TiB)' % (num_bytes / TiB)
         elif num_bytes > GiB:
-            output += ' (%.3g GiB)' % (num_bytes / GiB)
+            output += ' (%.4g GiB)' % (num_bytes / GiB)
         elif num_bytes > MiB:
-            output += ' (%.3g MiB)' % (num_bytes / MiB)
+            output += ' (%.4g MiB)' % (num_bytes / MiB)
         elif num_bytes > KiB:
-            output += ' (%.3g KiB)' % (num_bytes / KiB)
+            output += ' (%.4g KiB)' % (num_bytes / KiB)
         return output
 
     def download(self):
@@ -433,6 +440,11 @@ class Dataset(object):
         Returns
         -------
         Nothing
+
+        Raises
+        -------
+        IOError
+            Download failed.
 
         """
 
@@ -457,11 +469,11 @@ class Dataset(object):
                         block = handle.read(blocksize)
                         actualSize += len(block)
                         if size:
-                            progress(title=self.name,
+                            progress(title_text=os.path.split(item['local_package'])[1],
                                      percentage=actualSize / float(size),
                                      note=self.print_bytes(actualSize))
                         else:
-                            progress(title=self.name,
+                            progress(title_text=os.path.split(item['local_package'])[1],
                                      note=self.print_bytes(actualSize))
 
                         if len(block) == 0:
@@ -490,38 +502,47 @@ class Dataset(object):
         """
 
         section_header('Extract dataset')
-        for item in self.package_list:
+        for item_id, item in enumerate(self.package_list):
             if item['local_package']:
                 if item['local_package'].endswith('.zip'):
 
                     with zipfile.ZipFile(item['local_package'], "r") as z:
+                        # Trick to omit first level folder
                         parts = []
                         for name in z.namelist():
                             if not name.endswith('/'):
                                 parts.append(name.split('/')[:-1])
                         prefix = os.path.commonprefix(parts) or ''
+
                         if prefix:
+                            if len(prefix) > 1:
+                                prefix_ = list()
+                                prefix_.append(prefix[0])
+                                prefix = prefix_
+
                             prefix = '/'.join(prefix) + '/'
                         offset = len(prefix)
 
+                        # Start extraction
                         members = z.infolist()
                         file_count = 1
-
                         for i, member in enumerate(members):
                             if len(member.filename) > offset:
                                 member.filename = member.filename[offset:]
-                            if not os.path.isfile(os.path.join(self.local_path, member.filename)):
-                                z.extract(member, self.local_path)
-                            progress(title='Extracting', percentage=(file_count / float(len(members))),
-                                     note=member.filename)
-                            file_count += 1
+
+                                if not os.path.isfile(os.path.join(self.local_path, member.filename)):
+                                    z.extract(member, self.local_path)
+
+                                progress(title_text='Extracting ['+str(item_id)+'/'+str(len(self.package_list))+']', percentage=(file_count / float(len(members))),
+                                         note=member.filename)
+                                file_count += 1
 
                 elif item['local_package'].endswith('.tar.gz'):
                     tar = tarfile.open(item['local_package'], "r:gz")
                     for i, tar_info in enumerate(tar):
                         if not os.path.isfile(os.path.join(self.local_path, tar_info.name)):
                             tar.extract(tar_info, self.local_path)
-                        progress(title='Extracting', note=tar_info.name)
+                        progress(title_text='Extracting ['+str(item_id)+'/'+str(len(self.package_list))+']', note=tar_info.name)
                         tar.members = []
                     tar.close()
         foot()
@@ -782,6 +803,7 @@ class Dataset(object):
             Absolute path
 
         """
+
         return os.path.abspath(os.path.join(self.local_path, path))
 
     def absolute_to_relative(self, path):
@@ -798,6 +820,7 @@ class Dataset(object):
             Relative path
 
         """
+
         if path.startswith(os.path.abspath(self.local_path)):
             return os.path.relpath(path, self.local_path)
         else:
@@ -886,6 +909,18 @@ class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
         ]
 
     def on_after_extract(self):
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
         if not os.path.isfile(self.meta_file):
             section_header('Generating meta file for dataset')
             meta_data = {}
@@ -950,6 +985,18 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
         ]
 
     def on_after_extract(self):
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
         eval_filename = os.path.join(self.evaluation_setup_path, 'evaluate.txt')
 
         if not os.path.isfile(self.meta_file) and os.path.isfile(eval_filename):
@@ -1031,7 +1078,6 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
                 'local_package': os.path.join(self.local_path, 'TUT-sound-events-2016-development.audio.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
-
         ]
 
     def event_label_count(self, scene_label=None):
@@ -1041,12 +1087,24 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
         labels = []
         for item in self.meta:
             if scene_label is None or item['scene_label'] == scene_label:
-                if 'event_label' in item and item['event_label'] not in labels:
-                    labels.append(item['event_label'])
+                if 'event_label' in item and item['event_label'].rstrip() not in labels:
+                    labels.append(item['event_label'].rstrip())
         labels.sort()
         return labels
 
     def on_after_extract(self):
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
         if not os.path.isfile(self.meta_file):
             meta_file_handle = open(self.meta_file, 'wt')
             try:
@@ -1202,6 +1260,18 @@ class TUTSoundEvents_2016_EvaluationSet(Dataset):
         return labels
 
     def on_after_extract(self):
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
         if not os.path.isfile(self.meta_file) and os.path.isdir(os.path.join(self.local_path,'meta')):
             meta_file_handle = open(self.meta_file, 'wt')
             try:
@@ -1288,10 +1358,19 @@ class CHiMEHome_DomesticAudioTag_DevelopmentSet(Dataset):
 
     @property
     def audio_files(self):
+        """Get all audio files in the dataset, use only file from CHime-Home-refined set.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        files : list
+            audio files
+
         """
-        Get all audio files in the dataset, use only file from CHime-Home-refined set.
-        :return: file list with absolute paths
-        """
+
         if self.files is None:
             refined_files = []
             with open(os.path.join(self.local_path, 'chime_home', 'chunks_refined.csv'), 'rt') as f:
@@ -1341,8 +1420,20 @@ class CHiMEHome_DomesticAudioTag_DevelopmentSet(Dataset):
             return None
 
     def on_after_extract(self):
-        # Make legacy dataset compatible with DCASE2016 dataset scheme
-        
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Legacy dataset meta files are converted to be compatible with current scheme.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
         if not os.path.isfile(self.meta_file):
             section_header('Generating meta file for dataset')
 
@@ -1371,7 +1462,6 @@ class CHiMEHome_DomesticAudioTag_DevelopmentSet(Dataset):
             finally:
                 f.close()
             foot()
-
 
         all_folds_found = True
         for fold in xrange(1, self.evaluation_folds):
@@ -1463,6 +1553,7 @@ class DCASE2013_Scene_DevelopmentSet(Dataset):
         ]
 
     def on_after_extract(self):
+
         # Make legacy dataset compatible with DCASE2016 dataset scheme
         if not os.path.isfile(self.meta_file):
             section_header('Generating meta file for dataset')
@@ -1821,8 +1912,6 @@ class DCASE2013_Event_EvaluationSet(Dataset):
                                     annotation_file_handle.close()
             finally:
                 meta_file_handle.close()
-
-
 
         all_folds_found = True
         for fold in xrange(1, self.evaluation_folds):

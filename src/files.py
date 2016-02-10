@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import wave
 import numpy
@@ -27,13 +30,14 @@ def load_audio(filename, mono=True, fs=44100):
 
     Returns
     -------
-    array : numpy.ndarray [shape=(channel, signal_length)]
+    audio_data : numpy.ndarray [shape=(signal_length, channel)]
         Audio
 
     sample_rate : integer
         Sample rate
 
     """
+
     file_base, file_extension = os.path.splitext(filename)
     if file_extension == '.wav':
         audio_file = wave.open(filename)
@@ -61,30 +65,31 @@ def load_audio(filename, mono=True, fs=44100):
             raw_bytes = numpy.fromstring(data, dtype=numpy.uint8)
             a[:, :, :sample_width] = raw_bytes.reshape(-1, number_of_channels, sample_width)
             a[:, :, sample_width:] = (a[:, :, sample_width - 1:sample_width] >> 7) * 255
-            array = a.view('<i4').reshape(a.shape[:-1]).T
+            audio_data = a.view('<i4').reshape(a.shape[:-1]).T
         else:
             # 8 bit samples are stored as unsigned ints; others as signed ints.
             dt_char = 'u' if sample_width == 1 else 'i'
             a = numpy.fromstring(data, dtype='<%s%d' % (dt_char, sample_width))
-            array = a.reshape(-1, number_of_channels).T
+            audio_data = a.reshape(-1, number_of_channels).T
 
         if mono:
             # Down-mix audio
-            array = numpy.mean(array, axis=0)
+            audio_data = numpy.mean(audio_data, axis=0)
 
         # Convert int values into float
-        array = array / float(2 ** (sample_width * 8 - 1) + 1)
+        audio_data = audio_data / float(2 ** (sample_width * 8 - 1) + 1)
 
-        if (fs != sample_rate):
-            array = librosa.core.resample(array, sample_rate, fs)
+        # Resample
+        if fs != sample_rate:
+            audio_data = librosa.core.resample(audio_data, sample_rate, fs)
             sample_rate = fs
 
-        return array, sample_rate
+        return audio_data, sample_rate
 
     elif file_extension == '.flac':
-        array, sample_rate = librosa.load(filename, sr=fs, mono=mono)
+        audio_data, sample_rate = librosa.load(filename, sr=fs, mono=mono)
 
-        return array, sample_rate
+        return audio_data, sample_rate
 
     return None, None
 
@@ -155,15 +160,15 @@ def save_data(filename, data):
 
     Parameters
     ----------
-        filename: str
-            Path to file
+    filename: str
+        Path to file
 
-        data: list or dict
-            Data to be saved.
+    data: list or dict
+        Data to be saved.
 
     Returns
     -------
-        nothing
+    nothing
 
     """
 
@@ -175,14 +180,14 @@ def load_data(filename):
 
     Parameters
     ----------
-        filename: str
-            Path to file
+    filename: str
+        Path to file
 
 
     Returns
     -------
-        data: list or dict
-            Loaded file.
+    data: list or dict
+        Loaded file.
 
     """
 
@@ -194,19 +199,19 @@ def load_parameters(filename):
 
     Parameters
     ----------
-        filename: str
-            Path to file
+    filename: str
+        Path to file
 
 
     Returns
     -------
-        parameters: dict
-            Dict containing loaded parameters
+    parameters: dict
+        Dict containing loaded parameters
 
     Raises
     -------
-        IOError
-            if file is not found.
+    IOError
+        if file is not found.
 
     """
     if os.path.isfile(filename):
@@ -221,15 +226,15 @@ def save_text(filename, text):
 
     Parameters
     ----------
-        filename: str
-            Path to file
+    filename: str
+        Path to file
 
-        text: str
-            String to be saved.
+    text: str
+        String to be saved.
 
     Returns
     -------
-        nothing
+    nothing
 
     """
 
@@ -242,16 +247,15 @@ def load_text(filename):
 
     Parameters
     ----------
-        filename: str
-            Path to file
+    filename: str
+        Path to file
 
     Returns
     -------
-        text: string
-            Loaded text.
+    text: string
+        Loaded text.
 
     """
 
-    f = open(filename, 'r')
-    return f.readlines()
-
+    with open(filename, 'r') as f:
+        return f.readlines()

@@ -30,7 +30,7 @@ path:
   models: acoustic_models/
   results: evaluation_results/
 
-  challenge_results: challenge_submission/task_3_real_life_audio_sound_event_detection/
+  challenge_results: challenge_submission/task_3_sound_event_detection_in_real_life_audio/
 
 # ==========================================================
 # Feature extraction
@@ -68,8 +68,8 @@ classifier:
 
 classifier_parameters:
   gmm:
-    n_components: 16             # Number of Gaussian components
-    covariance_type: diag        # [diag|full] Diagonal or full covariance matrix
+    n_components: 16            # Number of Gaussian components
+    covariance_type: diag       # [diag|full] Diagonal or full covariance matrix
     random_state: 0
     thresh: !!null
     tol: 0.001
@@ -83,7 +83,7 @@ classifier_parameters:
 # Detector
 # ==========================================================
 detector:
-  decision_threshold: 140.0
-  smoothing_window_length: 1.0 #1.0  # seconds
-  minimum_event_length: 0.1    #0.1 # seconds
-  minimum_event_gap: 0.1       #0.1  # seconds
+  decision_threshold: 160.0
+  smoothing_window_length: 1.0  # seconds
+  minimum_event_length: 0.1     # seconds
+  minimum_event_gap: 0.1        # seconds

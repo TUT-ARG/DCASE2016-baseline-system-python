@@ -68,7 +68,7 @@ classifier:
 
 classifier_parameters:
   gmm:
-    n_components: 32            # Number of Gaussian components
+    n_components: 16            # Number of Gaussian components
     covariance_type: diag       # [diag|full] Diagonal or full covariance matrix
     random_state: 0
     thresh: !!null
@@ -78,4 +78,3 @@ classifier_parameters:
     n_init: 1
     params: wmc
     init_params: wmc
-

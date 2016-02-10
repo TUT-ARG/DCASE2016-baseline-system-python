@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy
 import librosa
 import scipy
@@ -10,7 +13,7 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
     Outputs features in dict, format:
 
         {
-            'feat': feature_matrix,
+            'feat': feature_matrix [shape=(frame count, feature vector size)],
             'stat': {
                 'mean': numpy.mean(feature_matrix, axis=0),
                 'std': numpy.std(feature_matrix, axis=0),
@@ -22,7 +25,7 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
 
     Parameters
     ----------
-        y: numpy.ndarray [shape=(channel, signal_length)]
+        y: numpy.array [shape=(signal_length, )]
             Audio
 
         fs: int > 0 [scalar]
@@ -154,7 +157,7 @@ class FeatureNormalizer(object):
 
         Parameters
         ----------
-        feature_matrix : numpy.ndarray [shape=(number of feature values, t)] or None
+        feature_matrix : numpy.ndarray [shape=(frames, number of feature values)] or None
             Feature matrix to be used in the initialization
 
         """
@@ -243,12 +246,12 @@ class FeatureNormalizer(object):
 
         Parameters
         ----------
-        feature_matrix : numpy.ndarray [shape=(number of feature values, t)]
+        feature_matrix : numpy.ndarray [shape=(frames, number of feature values)]
             Feature matrix to be normalized
 
         Returns
         -------
-        feature_matrix : numpy.ndarray [shape=(number of feature values, t)]
+        feature_matrix : numpy.ndarray [shape=(frames, number of feature values)]
             Normalized feature matrix
 
         """
