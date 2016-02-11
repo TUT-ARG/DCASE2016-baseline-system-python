@@ -608,8 +608,8 @@ def do_system_training(dataset, model_path, feature_normalizer_path, feature_pat
                         positive_mask = numpy.zeros((feature_data.shape[0]), dtype=bool)
 
                         for event in ann[audio_filename][event_label]:
-                            start_frame = math.floor(event[0] / hop_length_seconds)
-                            stop_frame = math.ceil(event[1] / hop_length_seconds)
+                            start_frame = int(math.floor(event[0] / hop_length_seconds))
+                            stop_frame = int(math.ceil(event[1] / hop_length_seconds))
 
                             if stop_frame > feature_data.shape[0]:
                                 stop_frame = feature_data.shape[0]
