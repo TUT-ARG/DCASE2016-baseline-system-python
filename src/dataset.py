@@ -494,11 +494,12 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
-            Nothing
+        Nothing
+
         """
 
         section_header('Extract dataset')
@@ -586,7 +587,7 @@ class Dataset(object):
 
         Parameters
         ----------
-            Nothing
+        Nothing
 
         Returns
         -------
@@ -841,8 +842,8 @@ class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
         Dataset.__init__(self, data_path=data_path, name='TUT-acoustic-scenes-2016-development')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
-        self.name_remote = 'TUT Acoustic Scenes 2016 development'
-        self.url = 'http://www.cs.tut.fi/sgn/arg/dcase2016/download/'
+        self.name_remote = 'TUT Acoustic Scenes 2016, development dataset'
+        self.url = 'https://zenodo.org/record/45739'
         self.audio_source = 'Field recording'
         self.audio_type = 'Natural'
         self.recording_device_model = 'Roland Edirol R-09'
@@ -967,7 +968,7 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
         Dataset.__init__(self, data_path=data_path, name='TUT-acoustic-scenes-2016-evaluation')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
-        self.name_remote = 'TUT Acoustic Scenes 2016 evaluation'
+        self.name_remote = 'TUT Acoustic Scenes 2016, evaluation dataset'
         self.url = 'http://www.cs.tut.fi/sgn/arg/dcase2016/download/'
         self.audio_source = 'Field recording'
         self.audio_type = 'Natural'
@@ -1038,8 +1039,8 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
         Dataset.__init__(self, data_path=data_path, name='TUT-sound-events-2016-development')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
-        self.name_remote = 'TUT Sound Events 2016 development'
-        self.url = 'http://www.cs.tut.fi/sgn/arg/dcase2016/download/'
+        self.name_remote = 'TUT Sound Events 2016, development dataset'
+        self.url = 'https://zenodo.org/record/45759'
         self.audio_source = 'Field recording'
         self.audio_type = 'Natural'
         self.recording_device_model = 'Roland Edirol R-09'
@@ -1214,7 +1215,7 @@ class TUTSoundEvents_2016_EvaluationSet(Dataset):
         Dataset.__init__(self, data_path=data_path, name='TUT-sound-events-2016-evaluation')
 
         self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
-        self.name_remote = 'TUT Sound Events 2016 evaluation'
+        self.name_remote = 'TUT Sound Events 2016, evaluation dataset'
         self.url = 'http://www.cs.tut.fi/sgn/arg/dcase2016/download/'
         self.audio_source = 'Field recording'
         self.audio_type = 'Natural'
