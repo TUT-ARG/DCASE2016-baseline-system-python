@@ -1050,11 +1050,14 @@ body .markdown-body
 <h4 id="12-sound-event-detection"><a name="user-content-12-sound-event-detection" href="#12-sound-event-detection" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.2. Sound event detection</h4>
 <p>The acoustic features include MFCC static coefficients (0th coefficient omitted), delta coefficients and acceleration coefficients. The system has a binary classifier for each sound event class included. For the classifier, two acoustic models are trained from the mixture signals: one with positive examples (target sound event active) and one with negative examples (target sound event non-active). The classification is done between these two models as likelihood ratio. Post-processing is applied to get sound event detection output. </p>
 <h1 id="2-installation"><a name="user-content-2-installation" href="#2-installation" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>2. Installation</h1>
-<p>The systems are developed for <a href="https://www.python.org/">Python 2.7</a>. Currently, the baseline system is tested only with Linux operating system. </p>
+<p>The systems are developed for <a href="https://www.python.org/">Python 2.7.0</a>. Currently, the baseline system is tested only with Linux operating system. </p>
+<p>Run to ensure that all external modules are installed</p>
+<pre><code>pip install -r requirements.txt
+</code></pre>
 <p><strong>External modules required</strong></p>
 <p><a href="http://www.numpy.org/"><em>numpy</em></a>, <a href="http://www.scipy.org/"><em>scipy</em></a>, <a href="http://scikit-learn.org/"><em>scikit-learn</em></a><br />
 <code>pip install numpy scipy scikit-learn</code></p>
-<p>Scikit-learn (version &gt;= 0.17) is required for the machine learning implementations.</p>
+<p>Scikit-learn (version &gt;= 0.16) is required for the machine learning implementations.</p>
 <p><a href="http://pyyaml.org/"><em>PyYAML</em></a><br />
 <code>pip install pyyaml</code></p>
 <p>PyYAML is required for handling the configuration files.</p>
@@ -1588,4 +1591,4 @@ classifier_parameters:
 <li>Initial commit</li>
 </ul>
 <h1 id="8-license"><a name="user-content-8-license" href="#8-license" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>8. License</h1>
-<p>See file <a href="/run/user/1000/gvfs/sftp%3Ahost%3Dmustatilhi.cs.tut.fi%2Cuser%3Dheittolt/home/heittolt/argh/repositories/dcase2016_baseline/python/EULA.pdf">EULA.pdf</a></p></article></body></html>
+<p>See file <a href="/run/user/1000/gvfs/sftp%3Ahost%3Dmustatilhi.cs.tut.fi%2Cuser%3Dheittolt/home/heittolt/argh/repositories/dcase2016_baseline/public/DCASE2016-baseline-system/EULA.pdf">EULA.pdf</a></p></article></body></html>

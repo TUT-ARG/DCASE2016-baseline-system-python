@@ -48,14 +48,18 @@ The acoustic features include MFCC static coefficients (0th coefficient omitted)
 2. Installation
 ===============
 
-The systems are developed for [Python 2.7](https://www.python.org/). Currently, the baseline system is tested only with Linux operating system. 
+The systems are developed for [Python 2.7.0](https://www.python.org/). Currently, the baseline system is tested only with Linux operating system. 
+
+Run to ensure that all external modules are installed
+
+    pip install -r requirements.txt
 
 **External modules required**
 
 [*numpy*](http://www.numpy.org/), [*scipy*](http://www.scipy.org/), [*scikit-learn*](http://scikit-learn.org/)
 `pip install numpy scipy scikit-learn`
 
-Scikit-learn (version >= 0.17) is required for the machine learning implementations.
+Scikit-learn (version >= 0.16) is required for the machine learning implementations.
 
 [*PyYAML*](http://pyyaml.org/)
 `pip install pyyaml`
