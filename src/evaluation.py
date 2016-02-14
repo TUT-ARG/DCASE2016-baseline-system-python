@@ -14,7 +14,6 @@ class DCASE2016_SceneClassification_Metrics():
 
         >>> dcase2016_scene_metric = DCASE2016_SceneClassification_Metrics(class_list=dataset.scene_labels)
         >>> for fold in dataset.folds(mode=dataset_evaluation_mode):
-        >>>     dcase2016_scene_metric_fold = DCASE2016_SceneClassification_Metrics(class_list=dataset.scene_labels)
         >>>     results = []
         >>>     result_filename = get_result_filename(fold=fold, path=result_path)
         >>>
@@ -761,7 +760,7 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         return math.fabs(annotated_event['event_onset'] - system_event['event_onset']) <= t_collar
 
     def offset_condition(self, annotated_event, system_event, t_collar=0.200, percentage_of_length=0.5):
-        """Offset condition, checked does the event pair fulfill condition
+        """Offset condition, checking does the event pair fulfill condition
 
         Condition:
 

@@ -1032,7 +1032,7 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
 class TUTSoundEvents_2016_DevelopmentSet(Dataset):
     """TUT Sound events 2016 development dataset
 
-    This dataset is used in DCASE2016 - Task 3, Real-life audio sound event detection
+    This dataset is used in DCASE2016 - Task 3, Sound event detection in real life audio
 
     """
     def __init__(self, data_path='data'):
@@ -1207,7 +1207,7 @@ class TUTSoundEvents_2016_DevelopmentSet(Dataset):
 class TUTSoundEvents_2016_EvaluationSet(Dataset):
     """TUT Sound events 2016 evaluation dataset
 
-    This dataset is used in DCASE2016 - Task 3, Real-life audio sound event detection
+    This dataset is used in DCASE2016 - Task 3, Sound event detection in real life audio
 
     """
 

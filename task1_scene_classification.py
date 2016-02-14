@@ -122,13 +122,13 @@ def main(argv):
     if params['flow']['train_system']:
         section_header('System training')
 
-        do_system_training(dataset=dataset,
-                           dataset_evaluation_mode=dataset_evaluation_mode,
+        do_system_training(dataset=dataset,                           
                            model_path=params['path']['models'],
                            feature_normalizer_path=params['path']['feature_normalizers'],
                            feature_path=params['path']['features'],
                            classifier_params=params['classifier']['parameters'],
                            classifier_method=params['classifier']['method'],
+                           dataset_evaluation_mode=dataset_evaluation_mode,
                            overwrite=params['general']['overwrite']
                            )
 
@@ -142,14 +142,13 @@ def main(argv):
         if params['flow']['test_system']:
             section_header('System testing')
 
-            do_system_testing(dataset=dataset,
-                              dataset_evaluation_mode=dataset_evaluation_mode,
+            do_system_testing(dataset=dataset,                              
                               feature_path=params['path']['features'],
                               result_path=params['path']['results'],
                               model_path=params['path']['models'],
                               feature_params=params['features'],
-                              #evaluation_params=params['evaluation'],
-                              classifier_method=params['classifier']['method'],
+                              dataset_evaluation_mode=dataset_evaluation_mode,
+                              classifier_method=params['classifier']['method'],                              
                               overwrite=params['general']['overwrite']
                               )
             
@@ -178,13 +177,13 @@ def main(argv):
         if params['flow']['test_system']:
             section_header('System testing with challenge data')
 
-            do_system_testing(dataset=challenge_dataset,
-                              dataset_evaluation_mode=dataset_evaluation_mode,
+            do_system_testing(dataset=challenge_dataset,                              
                               feature_path=params['path']['features'],
                               result_path=params['path']['challenge_results'],
                               model_path=params['path']['models'],
                               feature_params=params['features'],
-                              classifier_method=params['classifier']['method'],
+                              dataset_evaluation_mode=dataset_evaluation_mode,
+                              classifier_method=params['classifier']['method'],                              
                               overwrite=True
                               )
 

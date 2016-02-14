@@ -106,7 +106,7 @@ def load_event_list(file):
     Event dict format:
 
         {
-            file': 'filename',
+            'file': 'filename',
             'scene_label': 'office',
             'event_onset': 0.0,
             'event_offset': 1.0,
@@ -183,7 +183,6 @@ def load_data(filename):
     filename: str
         Path to file
 
-
     Returns
     -------
     data: list or dict
@@ -202,7 +201,6 @@ def load_parameters(filename):
     filename: str
         Path to file
 
-
     Returns
     -------
     parameters: dict
@@ -211,7 +209,7 @@ def load_parameters(filename):
     Raises
     -------
     IOError
-        if file is not found.
+        file is not found.
 
     """
     if os.path.isfile(filename):

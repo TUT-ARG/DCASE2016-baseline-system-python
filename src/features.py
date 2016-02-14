@@ -25,46 +25,45 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
 
     Parameters
     ----------
-        y: numpy.array [shape=(signal_length, )]
-            Audio
+    y: numpy.array [shape=(signal_length, )]
+        Audio
 
-        fs: int > 0 [scalar]
-            Sample rate
-            (Default value=44100)
+    fs: int > 0 [scalar]
+        Sample rate
+        (Default value=44100)
 
-        statistics: bool
-            Calculate feature statistics for extracted matrix
-            (Default value=True)
+    statistics: bool
+        Calculate feature statistics for extracted matrix
+        (Default value=True)
 
-        include_mfcc0: bool
-            Include 0th MFCC coefficient into static coefficients.
-            (Default value=True)
+    include_mfcc0: bool
+        Include 0th MFCC coefficient into static coefficients.
+        (Default value=True)
 
-        include_delta: bool
-            Include delta MFCC coefficients.
-            (Default value=True)
+    include_delta: bool
+        Include delta MFCC coefficients.
+        (Default value=True)
 
-        include_acceleration: bool
-            Include acceleration MFCC coefficients.
-            (Default value=True)
+    include_acceleration: bool
+        Include acceleration MFCC coefficients.
+        (Default value=True)
 
-        mfcc_params: dict or None
-            Parameters for extraction of static MFCC coefficients.
+    mfcc_params: dict or None
+        Parameters for extraction of static MFCC coefficients.
 
-        delta_params: dict or None
-            Parameters for extraction of delta MFCC coefficients.
+    delta_params: dict or None
+        Parameters for extraction of delta MFCC coefficients.
 
-        acceleration_params: dict or None
-            Parameters for extraction of acceleration MFCC coefficients.
+    acceleration_params: dict or None
+        Parameters for extraction of acceleration MFCC coefficients.
 
     Returns
     -------
-        result: dict
-            Feature dict
+    result: dict
+        Feature dict
 
     """
 
-    # Extract features, Mel Frequency Cepstral Coefficients
     eps = numpy.spacing(1)
 
     # Windowing function
@@ -84,6 +83,7 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
                                                    n_fft=mfcc_params['n_fft'],
                                                    win_length=mfcc_params['win_length'],
                                                    hop_length=mfcc_params['hop_length'],
+                                                   center=True,
                                                    window=window))**2
     mel_basis = librosa.filters.mel(sr=fs,
                                     n_fft=mfcc_params['n_fft'],
@@ -93,7 +93,8 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
                                     htk=mfcc_params['htk'])
     mel_spectrum = numpy.dot(mel_basis, magnitude_spectrogram)
     mfcc = librosa.feature.mfcc(S=librosa.logamplitude(mel_spectrum))
-
+    from IPython import embed
+    embed()
     # Collect the feature matrix
     feature_matrix = mfcc
     if include_delta:

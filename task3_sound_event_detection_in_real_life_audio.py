@@ -87,7 +87,7 @@ def main(argv):
     if params['flow']['extract_features']:
         section_header('Feature extraction [Development data]')
 
-        # Collect files in train sets
+        # Collect files from evaluation sets
         files = []
         for fold in dataset.folds(mode=dataset_evaluation_mode):
             for item_id, item in enumerate(dataset.train(fold)):
@@ -145,13 +145,13 @@ def main(argv):
         if params['flow']['test_system']:
             section_header('System testing     [Development data]')
 
-            do_system_testing(dataset=dataset,
-                              dataset_evaluation_mode=dataset_evaluation_mode,
+            do_system_testing(dataset=dataset,                              
                               result_path=params['path']['results'],
                               feature_path=params['path']['features'],
                               model_path=params['path']['models'],
                               feature_params=params['features'],
                               detector_params=params['detector'],
+                              dataset_evaluation_mode=dataset_evaluation_mode,
                               classifier_method=params['classifier']['method'],
                               overwrite=params['general']['overwrite']
                               )
@@ -180,13 +180,14 @@ def main(argv):
         if params['flow']['test_system']:
             section_header('System testing     [Challenge data]')
 
-            do_system_testing(dataset=challenge_dataset,
-                              dataset_evaluation_mode=dataset_evaluation_mode,
+            do_system_testing(dataset=challenge_dataset,                              
                               result_path=params['path']['challenge_results'],
                               feature_path=params['path']['features'],
                               model_path=params['path']['models'],
                               feature_params=params['features'],
                               detector_params=params['detector'],
+                              dataset_evaluation_mode=dataset_evaluation_mode,
+                              classifier_method=params['classifier']['method'],
                               overwrite=True
                               )
             foot()
