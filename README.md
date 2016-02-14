@@ -35,7 +35,9 @@ This document describes the Python implementation of the baseline systems for th
 
 The baseline systems for task 1 and 3 shares the same basic approach: [MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum) based acoustic features and [GMM](https://en.wikipedia.org/wiki/Mixture_model) based classifier. The main motivation to have similar approaches for both tasks was to provide low entry level and allow easy switching between the tasks. 
 
-The development dataset and challenge dataset handling are hidden behind dataset access class, which should also help participants implementing their own systems.
+The dataset handling is hidden behind dataset access class, which should help DCASE challenge participants implementing their own systems.
+
+The [Matlab implementation](https://github.com/TUT-ARG/DCASE2016-baseline-system-matlab) is also available. 
 
 #### 1.1. Acoustic scene classification
 
@@ -84,6 +86,8 @@ Each system has two operating modes: **Development mode** and **Challenge mode**
 All the usage parameters are shown by `python task1_scene_classification.py -h` and `python task3_sound_event_detection_in_real_life_audio.py -h`
 
 The system parameters are defined in `task1_scene_classification.yaml` and `task3_sound_event_detection_in_real_life_audio.yaml`. 
+
+With default parameter settings, the system will download needed dataset from Internet and extract it under directory `data` (storage path is controlled with parameter `path->data`). 
 
 #### Development mode
 
@@ -143,7 +147,7 @@ The scoring of acoustic scene classification will be based on classification acc
 
 ##### TUT Acoustic scenes 2016, development set
 
-[Dataset]()
+[Dataset](https://zenodo.org/record/45739)
 
 *Evaluation setup*
 
@@ -235,7 +239,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 
 ##### TUT Sound events 2016, development set
 
-[Dataset]()
+[Dataset](https://zenodo.org/record/45759)
 
 *Evaluation setup*
 
@@ -246,6 +250,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 - Frame size: 40 ms (with 50% hop size)
 - Number of Gaussians per sound event model (positive and negative): 16 
 - Feature vector: 20 MFCC static coefficients (excluding 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values
+- Decision_threshold: 140
 
 *Segment based metrics - overall*
 
@@ -259,7 +264,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 
 | Scene                 | ER          | F1          | 
 |-----------------------|-------------|-------------|
-| Home                  | 1.05        | 11.6        |
+| Home                  | 1.05        | 11.6 %      |
 | Residential area      | 1.04        | 20.2 %      | 
 | **Average**           |  **1.05 **  | **15.9 %**  |
 
@@ -267,7 +272,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 
 | Scene                 | ER          | F1          | 
 |-----------------------|-------------|-------------|
-| Home                  | 1.33        | 2.5         |
+| Home                  | 1.33        | 2.5 %       |
 | Residential area      | 1.98        | 1.6 %       |
 | **Average**           |  **1.66 **  | **2.0 %**   |
 
@@ -275,7 +280,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 
 | Scene                 | ER          | F1          | 
 |-----------------------|-------------|-------------|
-| Home                  | 1.31        | 2.2         |
+| Home                  | 1.31        | 2.2 %       |
 | Residential area      | 1.99        | 0.7 %       |
 | **Average**           |  **1.65 **  | **1.4 %**   |
 
@@ -426,7 +431,7 @@ This section contains the frame classification related parameters.
 
     classifier_parameters:
       gmm:
-        n_components: 8             # Number of Gaussian components
+        n_components: 16            # Number of Gaussian components
         covariance_type: diag       # Diagonal or full covariance matrix
         random_state: 0
         thresh: !!null
@@ -437,7 +442,7 @@ This section contains the frame classification related parameters.
         params: wmc
         init_params: wmc
 
-`classifier_parameters->gmm->n_components: 8`
+`classifier_parameters->gmm->n_components: 16`
 : Number of Gaussians used in the modeling.
 
 In order to add new classifiers to the system, add parameters under classifier_parameters with new tag. Set `classifier->method` and add appropriate code where `classifier_method` variable is used system block API (look into `do_system_training` and `do_system_testing` methods). In addition to this, one might want to modify filename methods (`get_model_filename` and `get_result_filename`) to allow multiple classifier methods co-exist in the system.

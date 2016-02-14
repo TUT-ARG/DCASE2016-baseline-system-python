@@ -1044,7 +1044,8 @@ body .markdown-body
 <li><a href="http://www.cs.tut.fi/sgn/arg/dcase2016/task-audio-tagging">Domestic audio tagging</a></li>
 </ol>
 <p>The baseline systems for task 1 and 3 shares the same basic approach: <a href="https://en.wikipedia.org/wiki/Mel-frequency_cepstrum">MFCC</a> based acoustic features and <a href="https://en.wikipedia.org/wiki/Mixture_model">GMM</a> based classifier. The main motivation to have similar approaches for both tasks was to provide low entry level and allow easy switching between the tasks. </p>
-<p>The development dataset and challenge dataset handling are hidden behind dataset access class, which should also help participants implementing their own systems.</p>
+<p>The dataset handling is hidden behind dataset access class, which should help DCASE challenge participants implementing their own systems.</p>
+<p>The <a href="https://github.com/TUT-ARG/DCASE2016-baseline-system-matlab">Matlab implementation</a> is also available. </p>
 <h4 id="11-acoustic-scene-classification"><a name="user-content-11-acoustic-scene-classification" href="#11-acoustic-scene-classification" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.1. Acoustic scene classification</h4>
 <p>The acoustic features include MFCC static coefficients (with 0th coefficient), delta coefficients and acceleration coefficients. The system learns one acoustic model per acoustic scene class, and does the classification with maximum likelihood classification scheme. </p>
 <h4 id="12-sound-event-detection"><a name="user-content-12-sound-event-detection" href="#12-sound-event-detection" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.2. Sound event detection</h4>
@@ -1073,6 +1074,7 @@ body .markdown-body
 <p>Each system has two operating modes: <strong>Development mode</strong> and <strong>Challenge mode</strong>. </p>
 <p>All the usage parameters are shown by <code>python task1_scene_classification.py -h</code> and <code>python task3_sound_event_detection_in_real_life_audio.py -h</code></p>
 <p>The system parameters are defined in <code>task1_scene_classification.yaml</code> and <code>task3_sound_event_detection_in_real_life_audio.yaml</code>. </p>
+<p>With default parameter settings, the system will download needed dataset from Internet and extract it under directory <code>data</code> (storage path is controlled with parameter <code>path-&gt;data</code>). </p>
 <h4 id="development-mode"><a name="user-content-development-mode" href="#development-mode" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Development mode</h4>
 <p>In this mode, the system is trained and evaluated with the development dataset. This is the default operating mode. </p>
 <p>To run the system in this mode:<br />
@@ -1122,7 +1124,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <p>The scoring of acoustic scene classification will be based on classification accuracy: the number of correctly classified segments among the total number of segments. Each segment is considered an independent test sample. </p>
 <h3 id="results"><a name="user-content-results" href="#results" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Results</h3>
 <h5 id="tut-acoustic-scenes-2016-development-set"><a name="user-content-tut-acoustic-scenes-2016-development-set" href="#tut-acoustic-scenes-2016-development-set" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>TUT Acoustic scenes 2016, development set</h5>
-<p><a href="">Dataset</a></p>
+<p><a href="https://zenodo.org/record/45739">Dataset</a></p>
 <p><em>Evaluation setup</em></p>
 <ul>
 <li>4 cross-validation folds, average classification accuracy over folds</li>
@@ -1301,7 +1303,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <p>Detailed description of metrics can be found from <a href="http://www.cs.tut.fi/sgn/arg/dcase2016/sound-event-detection-metrics">DCASE2016 website</a>.</p>
 <h3 id="results_1"><a name="user-content-results_1" href="#results_1" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Results</h3>
 <h5 id="tut-sound-events-2016-development-set"><a name="user-content-tut-sound-events-2016-development-set" href="#tut-sound-events-2016-development-set" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>TUT Sound events 2016, development set</h5>
-<p><a href="">Dataset</a></p>
+<p><a href="https://zenodo.org/record/45759">Dataset</a></p>
 <p><em>Evaluation setup</em></p>
 <ul>
 <li>4 cross-validation folds</li>
@@ -1311,6 +1313,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <li>Frame size: 40 ms (with 50% hop size)</li>
 <li>Number of Gaussians per sound event model (positive and negative): 16 </li>
 <li>Feature vector: 20 MFCC static coefficients (excluding 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values</li>
+<li>Decision_threshold: 140</li>
 </ul>
 <p><em>Segment based metrics - overall</em></p>
 <table>
@@ -1364,7 +1367,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <tr>
 <td>Home</td>
 <td>1.05</td>
-<td>11.6</td>
+<td>11.6 %</td>
 </tr>
 <tr>
 <td>Residential area</td>
@@ -1391,7 +1394,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <tr>
 <td>Home</td>
 <td>1.33</td>
-<td>2.5</td>
+<td>2.5 %</td>
 </tr>
 <tr>
 <td>Residential area</td>
@@ -1418,7 +1421,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <tr>
 <td>Home</td>
 <td>1.31</td>
-<td>2.2</td>
+<td>2.2 %</td>
 </tr>
 <tr>
 <td>Residential area</td>
@@ -1551,7 +1554,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 
 classifier_parameters:
   gmm:
-    n_components: 8             # Number of Gaussian components
+    n_components: 16            # Number of Gaussian components
     covariance_type: diag       # Diagonal or full covariance matrix
     random_state: 0
     thresh: !!null
@@ -1563,7 +1566,7 @@ classifier_parameters:
     init_params: wmc
 </code></pre>
 <dl>
-<dt><code>classifier_parameters-&gt;gmm-&gt;n_components: 8</code></dt>
+<dt><code>classifier_parameters-&gt;gmm-&gt;n_components: 16</code></dt>
 <dd>Number of Gaussians used in the modeling.</dd>
 </dl>
 <p>In order to add new classifiers to the system, add parameters under classifier_parameters with new tag. Set <code>classifier-&gt;method</code> and add appropriate code where <code>classifier_method</code> variable is used system block API (look into <code>do_system_training</code> and <code>do_system_testing</code> methods). In addition to this, one might want to modify filename methods (<code>get_model_filename</code> and <code>get_result_filename</code>) to allow multiple classifier methods co-exist in the system.</p>
@@ -1591,4 +1594,4 @@ classifier_parameters:
 <li>Initial commit</li>
 </ul>
 <h1 id="8-license"><a name="user-content-8-license" href="#8-license" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>8. License</h1>
-<p>See file <a href="/run/user/1000/gvfs/sftp%3Ahost%3Dmustatilhi.cs.tut.fi%2Cuser%3Dheittolt/home/heittolt/argh/repositories/dcase2016_baseline/public/DCASE2016-baseline-system/EULA.pdf">EULA.pdf</a></p></article></body></html>
+<p>See file <a href="/run/user/1000/gvfs/sftp%3Ahost%3Dmustatilhi.cs.tut.fi%2Cuser%3Dheittolt/home/heittolt/argh/repositories/dcase2016_baseline/python/EULA.pdf">EULA.pdf</a></p></article></body></html>
