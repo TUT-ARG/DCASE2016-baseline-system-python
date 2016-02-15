@@ -93,8 +93,7 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
                                     htk=mfcc_params['htk'])
     mel_spectrum = numpy.dot(mel_basis, magnitude_spectrogram)
     mfcc = librosa.feature.mfcc(S=librosa.logamplitude(mel_spectrum))
-    from IPython import embed
-    embed()
+    
     # Collect the feature matrix
     feature_matrix = mfcc
     if include_delta:
