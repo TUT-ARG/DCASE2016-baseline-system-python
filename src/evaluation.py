@@ -652,14 +652,17 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         sys_correct = numpy.zeros(Nsys, dtype=bool)
         ref_correct = numpy.zeros(Nref, dtype=bool)
 
-        # Number of correctly transcribed events, onset within a t_collar range
+        # Number of correctly transcribed events, onset/offset within a t_collar range
         for j in range(0, len(annotated_ground_truth)):
             for i in range(0, len(system_output)):
                 label_condition = annotated_ground_truth[j]['event_label'] == system_output[i]['event_label']
-                onset_condition = self.onset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
+                onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
+                                                       system_event=system_output[i],
+                                                       t_collar=self.t_collar)
 
-                # Offset within a t_collar range or within 20% of ground-truth event's duration
-                offset_condition = self.offset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
+                offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
+                                                         system_event=system_output[i],
+                                                         t_collar=self.t_collar)
 
                 if label_condition and onset_condition and offset_condition:
                     ref_correct[j] = True
@@ -671,13 +674,17 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         sys_leftover = numpy.nonzero(numpy.negative(sys_correct))[0]
         ref_leftover = numpy.nonzero(numpy.negative(ref_correct))[0]
 
+        # Substitutions
         Nsubs = 0
-        for j in ref_leftover[0:20]:
-            for i in sys_leftover[0:20]:
-                onset_condition = self.onset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
+        for j in ref_leftover:
+            for i in sys_leftover:
+                onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
+                                                       system_event=system_output[i],
+                                                       t_collar=self.t_collar)
 
-                # Offset within a t_collar range or within 20% of ground-truth event's duration
-                offset_condition = self.offset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
+                offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
+                                                         system_event=system_output[i],
+                                                         t_collar=self.t_collar)
 
                 if onset_condition and offset_condition:
                     Nsubs += 1
@@ -712,10 +719,13 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
             for j in range(0, len(annotated_ground_truth)):
                 for i in range(0, len(system_output)):
                     if annotated_ground_truth[j]['event_label'] == class_label and system_output[i]['event_label'] == class_label:
-                        onset_condition = self.onset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
+                        onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
+                                                               system_event=system_output[i],
+                                                               t_collar=self.t_collar)
 
-                        # Offset within a +/-100 ms range or within 20% of ground-truth event's duration
-                        offset_condition = self.offset_condition(annotated_ground_truth[j], system_output[i], t_collar=self.t_collar)
+                        offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
+                                                                 system_event=system_output[i],
+                                                                 t_collar=self.t_collar)
 
                         if onset_condition and offset_condition:
                             Ntp += 1
