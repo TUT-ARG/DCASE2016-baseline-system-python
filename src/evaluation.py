@@ -98,7 +98,7 @@ class DCASE2016_SceneClassification_Metrics():
 
         """
 
-        accuracies_per_class = self.accuracies(y_true=system_output, y_pred=annotated_ground_truth, labels=self.class_list)
+        accuracies_per_class = self.accuracies(y_pred=system_output, y_true=annotated_ground_truth, labels=self.class_list)
 
         if self.accuracies_per_class is None:
             self.accuracies_per_class = accuracies_per_class
