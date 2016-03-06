@@ -163,22 +163,22 @@ The scoring of acoustic scene classification will be based on classification acc
 
 | Scene                | Accuracy     |
 |----------------------|--------------|
-| Beach                |  90.6 %      |
-| Bus                  |  81.4 %      |
-| Cafe/restaurant      |  71.0 %      |
-| Car                  |  94.1 %      |
-| City center          |  76.7 %      |
-| Forest path          |  96.4 %      |
-| Grocery store        |  87.8 %      |
-| Home                 |  79.4 %      |
-| Library              |  64.9 %      |
-| Metro station        |  80.3 %      |
-| Office               |  96.5 %      |
-| Park                 |  40.3 %      |
-| Residential area     |  42.2 %      |
-| Train                |  63.1 %      |
-| Tram                 |  63.4 %      |
-| **Overall accuracy** |  **75.2 %**  |
+| Beach                |  63.3 %      |
+| Bus                  |  79.6 %      |
+| Cafe/restaurant      |  83.2 %      |
+| Car                  |  87.2 %      |
+| City center          |  85.5 %      |
+| Forest path          |  81.0 %      |
+| Grocery store        |  65.0 %      |
+| Home                 |  82.1 %      |
+| Library              |  50.4 %      |
+| Metro station        |  94.7 %      |
+| Office               |  98.6 %      |
+| Park                 |  13.9 %      |
+| Residential area     |  77.7 %      |
+| Train                |  33.6 %      |
+| Tram                 |  85.4 %      |
+| **Overall accuracy** |  **72.4 %**  |
 
 ##### DCASE 2013 Scene classification, development set
 
