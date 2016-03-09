@@ -53,7 +53,9 @@ def main(argv):
     args = parser.parse_args()
 
     # Load parameters from config file
-    params = load_parameters('task1_scene_classification.yaml')
+    parameter_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                  os.path.splitext(os.path.basename(__file__))[0]+'.yaml')
+    params = load_parameters(parameter_file)
     params = process_parameters(params)
 
     title("DCASE 2016::Acoustic Scene Classification / Baseline System")
@@ -222,6 +224,8 @@ def process_parameters(params):
     params['classifier']['hash'] = get_parameter_hash(params['classifier'])
 
     # Paths
+    params['path']['data'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['data'])
+    params['path']['base'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['base'])
     params['path']['features'] = os.path.join(params['path']['base'], params['path']['features'],
                                               params['features']['hash'])
     params['path']['feature_normalizers'] = os.path.join(params['path']['base'], params['path']['feature_normalizers'],

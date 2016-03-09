@@ -356,10 +356,10 @@ This section contains the storage paths.
 These parameters defines the folder-structure to store acoustic features, feature normalization data, acoustic models and evaluation results.      
 
 `data: data/`
-: Defines the path where the dataset data is downloaded and stored. Path can be relative or absolute. 
+: Defines the path where the dataset data is downloaded and stored. Path is relative to the main script. 
 
 `base: system/baseline_dcase2016_task1/`
-: Defines the base path where the system stores the data. Other paths are stored under this path. If specified directory does not exist it is created. Path can be relative or absolute. 
+: Defines the base path where the system stores the data. Other paths are stored under this path. If specified directory does not exist it is created. Path is relative to the main script.  
 
 `challenge_results: challenge_submission/task_1_acoustic_scene_classification/`
 : Defines where the system output is stored while running the system in challenge mode. 

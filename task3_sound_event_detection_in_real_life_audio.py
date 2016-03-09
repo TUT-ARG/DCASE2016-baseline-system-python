@@ -56,7 +56,9 @@ def main(argv):
     args = parser.parse_args()
 
     # Load parameters from config file
-    params = load_parameters('task3_sound_event_detection_in_real_life_audio.yaml')
+    parameter_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                  os.path.splitext(os.path.basename(__file__))[0]+'.yaml')
+    params = load_parameters(parameter_file)
     params = process_parameters(params)
 
     title("DCASE 2016::Sound Event Detection in Real-life Audio / Baseline System")
@@ -218,10 +220,14 @@ def process_parameters(params):
     # Copy parameters for current classifier method
     params['classifier']['parameters'] = params['classifier_parameters'][params['classifier']['method']]
 
+    # Hash
     params['features']['hash'] = get_parameter_hash(params['features'])
     params['classifier']['hash'] = get_parameter_hash(params['classifier'])
     params['detector']['hash'] = get_parameter_hash(params['detector'])
 
+    # Paths
+    params['path']['data'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['data'])
+    params['path']['base'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['base'])
     params['path']['features'] = os.path.join(params['path']['base'], params['path']['features'], params['features']['hash'])
     params['path']['feature_normalizers'] = os.path.join(params['path']['base'], params['path']['feature_normalizers'], params['features']['hash'])
     params['path']['models'] = os.path.join(params['path']['base'], params['path']['models'], params['features']['hash'], params['classifier']['hash'])
