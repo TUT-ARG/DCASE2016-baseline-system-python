@@ -144,7 +144,7 @@ def postprocess_event_segments(event_segments, minimum_event_length=0.1, minimum
         # Load first event into event buffer
         buffered_event_onset = event_results_1[0][0]
         buffered_event_offset = event_results_1[0][1]
-        for i in range(1,len(event_results_1)):
+        for i in range(1, len(event_results_1)):
             if event_results_1[i][0] - buffered_event_offset > minimum_event_gap:
                 # The gap between current event and the buffered is bigger than minimum event gap,
                 # store event, and replace buffered event
