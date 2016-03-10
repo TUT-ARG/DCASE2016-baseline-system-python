@@ -193,6 +193,26 @@ def load_data(filename):
     return pickle.load(open(filename, "rb"))
 
 
+def save_parameters(filename, parameters):
+    """Save parameters to YAML-file
+
+    Parameters
+    ----------
+    filename: str
+        Path to file
+    parameters: dict
+        Dict containing parameters to be saved
+
+    Returns
+    -------
+    Nothing
+
+    """
+
+    with open(filename, 'w') as outfile:
+        outfile.write(yaml.dump(parameters, default_flow_style=False))
+
+
 def load_parameters(filename):
     """Load parameters from YAML-file
 
@@ -212,6 +232,7 @@ def load_parameters(filename):
         file is not found.
 
     """
+
     if os.path.isfile(filename):
         with open(filename, 'r') as f:
             return yaml.load(f)

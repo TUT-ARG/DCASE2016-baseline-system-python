@@ -211,6 +211,7 @@ def process_parameters(params):
         processed parameters
 
     """
+    parameter_filename = 'parameters.yaml'
 
     # Convert feature extraction window and hop sizes seconds to samples
     params['features']['mfcc']['win_length'] = int(params['features']['win_length_seconds'] * params['features']['fs'])
@@ -226,13 +227,49 @@ def process_parameters(params):
     # Paths
     params['path']['data'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['data'])
     params['path']['base'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['base'])
-    params['path']['features'] = os.path.join(params['path']['base'], params['path']['features'],
+
+    # Features
+    params['path']['features'] = os.path.join(params['path']['base'],
+                                              params['path']['features'],
                                               params['features']['hash'])
-    params['path']['feature_normalizers'] = os.path.join(params['path']['base'], params['path']['feature_normalizers'],
+    # Save parameters into folders to help manual browsing of files.
+    save_parameters(os.path.join(params['path']['features'], parameter_filename), params['features'])
+
+    # Feature normalizers
+    params['path']['feature_normalizers'] = os.path.join(params['path']['base'],
+                                                         params['path']['feature_normalizers'],
                                                          params['features']['hash'])
-    params['path']['models'] = os.path.join(params['path']['base'], params['path']['models'],
+    # Save parameters into folders to help manual browsing of files.
+    save_parameters(os.path.join(params['path']['feature_normalizers'],
+                                 parameter_filename), params['features'])
+
+    # Models
+    # Save parameters into folders to help manual browsing of files.
+    save_parameters(os.path.join(params['path']['base'],
+                                 params['path']['models'],
+                                 params['features']['hash'],
+                                 parameter_filename), params['features'])
+    save_parameters(os.path.join(params['path']['base'],
+                                 params['path']['models'],
+                                 params['features']['hash'],
+                                 params['classifier']['hash'],
+                                 parameter_filename), params['classifier'])
+    params['path']['models'] = os.path.join(params['path']['base'],
+                                            params['path']['models'],
                                             params['features']['hash'], params['classifier']['hash'])
-    params['path']['results'] = os.path.join(params['path']['base'], params['path']['results'],
+    # Results
+    # Save parameters into folders to help manual browsing of files.
+    save_parameters(os.path.join(params['path']['base'],
+                                 params['path']['results'],
+                                 params['features']['hash'],
+                                 parameter_filename), params['features'])
+    save_parameters(os.path.join(params['path']['base'],
+                                 params['path']['results'],
+                                 params['features']['hash'],
+                                 params['classifier']['hash'],
+                                 parameter_filename), params['classifier'])
+    params['path']['results'] = os.path.join(params['path']['base'],
+                                             params['path']['results'],
                                              params['features']['hash'], params['classifier']['hash'])
 
     return params
