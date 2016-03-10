@@ -57,6 +57,7 @@ def main(argv):
                                   os.path.splitext(os.path.basename(__file__))[0]+'.yaml')
     params = load_parameters(parameter_file)
     params = process_parameters(params)
+    make_folders(params)
 
     title("DCASE 2016::Acoustic Scene Classification / Baseline System")
 
@@ -211,7 +212,6 @@ def process_parameters(params):
         processed parameters
 
     """
-    parameter_filename = 'parameters.yaml'
 
     # Convert feature extraction window and hop sizes seconds to samples
     params['features']['mfcc']['win_length'] = int(params['features']['win_length_seconds'] * params['features']['fs'])
@@ -229,50 +229,98 @@ def process_parameters(params):
     params['path']['base'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['base'])
 
     # Features
+    params['path']['features_'] = params['path']['features']
     params['path']['features'] = os.path.join(params['path']['base'],
                                               params['path']['features'],
                                               params['features']['hash'])
-    # Save parameters into folders to help manual browsing of files.
-    save_parameters(os.path.join(params['path']['features'], parameter_filename), params['features'])
 
     # Feature normalizers
+    params['path']['feature_normalizers_'] = params['path']['feature_normalizers']
     params['path']['feature_normalizers'] = os.path.join(params['path']['base'],
                                                          params['path']['feature_normalizers'],
                                                          params['features']['hash'])
-    # Save parameters into folders to help manual browsing of files.
-    save_parameters(os.path.join(params['path']['feature_normalizers'],
-                                 parameter_filename), params['features'])
 
     # Models
-    # Save parameters into folders to help manual browsing of files.
-    save_parameters(os.path.join(params['path']['base'],
-                                 params['path']['models'],
-                                 params['features']['hash'],
-                                 parameter_filename), params['features'])
-    save_parameters(os.path.join(params['path']['base'],
-                                 params['path']['models'],
-                                 params['features']['hash'],
-                                 params['classifier']['hash'],
-                                 parameter_filename), params['classifier'])
+    params['path']['models_'] = params['path']['models']
     params['path']['models'] = os.path.join(params['path']['base'],
                                             params['path']['models'],
                                             params['features']['hash'], params['classifier']['hash'])
     # Results
-    # Save parameters into folders to help manual browsing of files.
-    save_parameters(os.path.join(params['path']['base'],
-                                 params['path']['results'],
-                                 params['features']['hash'],
-                                 parameter_filename), params['features'])
-    save_parameters(os.path.join(params['path']['base'],
-                                 params['path']['results'],
-                                 params['features']['hash'],
-                                 params['classifier']['hash'],
-                                 parameter_filename), params['classifier'])
+    params['path']['results_'] = params['path']['results']
     params['path']['results'] = os.path.join(params['path']['base'],
                                              params['path']['results'],
                                              params['features']['hash'], params['classifier']['hash'])
 
     return params
+
+
+def make_folders(params, parameter_filename='parameters.yaml'):
+    """Create all needed folders, and saves parameters in yaml-file for easier manual browsing of data.
+
+    Parameters
+    ----------
+    params : dict
+        parameters in dict
+
+    parameter_filename : str
+        filename to save parameters used to generate the folder name
+
+    Returns
+    -------
+    nothing
+
+    """
+
+    # Check that target path exists, create if not
+    check_path(params['path']['features'])
+    check_path(params['path']['feature_normalizers'])
+    check_path(params['path']['models'])
+    check_path(params['path']['results'])
+
+    # Save parameters into folders to help manual browsing of files.
+
+    # Features
+    feature_parameter_filename = os.path.join(params['path']['features'], parameter_filename)
+    if not os.path.isfile(feature_parameter_filename):
+        save_parameters(feature_parameter_filename, params['features'])
+
+    # Feature normalizers
+    feature_normalizer_parameter_filename = os.path.join(params['path']['feature_normalizers'], parameter_filename)
+    if not os.path.isfile(feature_normalizer_parameter_filename):
+        save_parameters(feature_normalizer_parameter_filename, params['features'])
+
+    # Models
+    model_features_parameter_filename = os.path.join(params['path']['base'],
+                                                     params['path']['models_'],
+                                                     params['features']['hash'],
+                                                     parameter_filename)
+    if not os.path.isfile(model_features_parameter_filename):
+        save_parameters(model_features_parameter_filename, params['features'])
+
+    model_models_parameter_filename = os.path.join(params['path']['base'],
+                                                   params['path']['models_'],
+                                                   params['features']['hash'],
+                                                   params['classifier']['hash'],
+                                                   parameter_filename)
+    if not os.path.isfile(model_models_parameter_filename):
+        save_parameters(model_models_parameter_filename, params['classifier'])
+
+    # Results
+    # Save parameters into folders to help manual browsing of files.
+    result_features_parameter_filename = os.path.join(params['path']['base'],
+                                                      params['path']['results_'],
+                                                      params['features']['hash'],
+                                                      parameter_filename)
+    if not os.path.isfile(result_features_parameter_filename):
+        save_parameters(result_features_parameter_filename, params['features'])
+
+    result_models_parameter_filename = os.path.join(params['path']['base'],
+                                                    params['path']['results_'],
+                                                    params['features']['hash'],
+                                                    params['classifier']['hash'],
+                                                    parameter_filename)
+    if not os.path.isfile(result_models_parameter_filename):
+        save_parameters(result_models_parameter_filename, params['classifier'])
 
 
 def get_feature_filename(audio_file, path, extension='cpickle'):
