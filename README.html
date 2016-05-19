@@ -1136,6 +1136,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <li>Frame size: 40 ms (with 50% hop size)</li>
 <li>Number of Gaussians per acoustic scene class model: 16 </li>
 <li>Feature vector: 20 MFCC static coefficients (including 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values</li>
+<li>Trained and tested on full audio </li>
 </ul>
 <table>
 <thead>
@@ -1207,7 +1208,7 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 </tr>
 <tr>
 <td><strong>Overall accuracy</strong></td>
-<td><strong>72.4 %</strong></td>
+<td><strong>72.5 %</strong></td>
 </tr>
 </tbody>
 </table>
@@ -1546,10 +1547,14 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <dt><code>mfcc-&gt;fmax: 22050</code></dt>
 <dd>Maximum frequency for MEL band. Usually, this is set to a half of the sampling frequency.</dd>
 </dl>
-<p><strong>Classification</strong></p>
-<p>This section contains the frame classification related parameters. </p>
+<p><strong>Classifier</strong></p>
+<p>This section contains the frame classifier related parameters. These parameters are used when chosen classifier is trained.</p>
 <pre><code>classifier:
   method: gmm                   # The system supports only gmm
+
+  audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
+    clean_data: false           # Exclude audio errors from training audio
+
   parameters: !!null            # Parameters are copied from classifier_parameters based on defined method
 
 classifier_parameters:
@@ -1566,12 +1571,24 @@ classifier_parameters:
     init_params: wmc
 </code></pre>
 <dl>
+<dt><code>audio_error_handling-&gt;clean_data: false</code></dt>
+<dd>Some datasets provide audio error annotations. With this switch these annotations can be used to exclude the segments containing audio errors from the feature matrix fed to the classifier during training. Audio errors can be temporary microphone failure or radio signal interferences from mobile phones.</dd>
 <dt><code>classifier_parameters-&gt;gmm-&gt;n_components: 16</code></dt>
 <dd>Number of Gaussians used in the modeling.</dd>
 </dl>
 <p>In order to add new classifiers to the system, add parameters under classifier_parameters with new tag. Set <code>classifier-&gt;method</code> and add appropriate code where <code>classifier_method</code> variable is used system block API (look into <code>do_system_training</code> and <code>do_system_testing</code> methods). In addition to this, one might want to modify filename methods (<code>get_model_filename</code> and <code>get_result_filename</code>) to allow multiple classifier methods co-exist in the system.</p>
+<p><strong>Recognizer</strong></p>
+<p>This section contains the sound recognition related parameters (used in <code>task1_scene_classification.py</code>).</p>
+<pre><code>recognizer:
+  audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
+    clean_data: false           # Clean tested data from errors
+</code></pre>
+<dl>
+<dt><code>audio_error_handling-&gt;clean_data: false</code></dt>
+<dd>Some datasets provide audio error annotations. With this switch these annotations can be used to exclude the segments containing audio errors from the feature matrix fed to the recognizer. Audio errors can be temporary microphone failure or radio signal interferences from mobile phones.</dd>
+</dl>
 <p><strong>Detector</strong></p>
-<p>This section contains the sound event detection related parameters.</p>
+<p>This section contains the sound event detection related parameters (used in <code>task3_sound_event_detection_in_real_life_audio.py</code>).</p>
 <pre><code>detector:
   decision_threshold: 140.0
   smoothing_window_length: 1.0  # seconds
@@ -1589,6 +1606,10 @@ classifier_parameters:
 <dd>Minimum gap (in seconds) between events from same event class in the output. Consecutive events (event with same event label) having shorter gaps between them than set parameter are merged together.</dd>
 </dl>
 <h1 id="7-changelog"><a name="user-content-7-changelog" href="#7-changelog" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>7. Changelog</h1>
+<h4 id="11-2016-05-19"><a name="user-content-11-2016-05-19" href="#11-2016-05-19" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.1 / 2016-05-19</h4>
+<ul>
+<li>Added audio error handling </li>
+</ul>
 <h4 id="10-2016-02-08"><a name="user-content-10-2016-02-08" href="#10-2016-02-08" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.0 / 2016-02-08</h4>
 <ul>
 <li>Initial commit</li>

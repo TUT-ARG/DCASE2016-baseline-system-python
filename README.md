@@ -160,6 +160,7 @@ The scoring of acoustic scene classification will be based on classification acc
 - Frame size: 40 ms (with 50% hop size)
 - Number of Gaussians per acoustic scene class model: 16 
 - Feature vector: 20 MFCC static coefficients (including 0th) + 20 delta MFCC coefficients + 20 acceleration MFCC coefficients = 60 values
+- Trained and tested on full audio 
 
 | Scene                | Accuracy     |
 |----------------------|--------------|
@@ -178,7 +179,7 @@ The scoring of acoustic scene classification will be based on classification acc
 | Residential area     |  77.7 %      |
 | Train                |  33.6 %      |
 | Tram                 |  85.4 %      |
-| **Overall accuracy** |  **72.4 %**  |
+| **Overall accuracy** |  **72.5 %**  |
 
 ##### DCASE 2013 Scene classification, development set
 
@@ -421,12 +422,16 @@ This section contains the feature extraction related parameters.
 `mfcc->fmax: 22050`
 : Maximum frequency for MEL band. Usually, this is set to a half of the sampling frequency.
         
-**Classification**
+**Classifier**
 
-This section contains the frame classification related parameters. 
+This section contains the frame classifier related parameters. These parameters are used when chosen classifier is trained.
 
     classifier:
       method: gmm                   # The system supports only gmm
+
+      audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
+        clean_data: false           # Exclude audio errors from training audio
+      
       parameters: !!null            # Parameters are copied from classifier_parameters based on defined method
 
     classifier_parameters:
@@ -442,14 +447,28 @@ This section contains the frame classification related parameters.
         params: wmc
         init_params: wmc
 
+`audio_error_handling->clean_data: false`
+: Some datasets provide audio error annotations. With this switch these annotations can be used to exclude the segments containing audio errors from the feature matrix fed to the classifier during training. Audio errors can be temporary microphone failure or radio signal interferences from mobile phones.
+
 `classifier_parameters->gmm->n_components: 16`
 : Number of Gaussians used in the modeling.
 
 In order to add new classifiers to the system, add parameters under classifier_parameters with new tag. Set `classifier->method` and add appropriate code where `classifier_method` variable is used system block API (look into `do_system_training` and `do_system_testing` methods). In addition to this, one might want to modify filename methods (`get_model_filename` and `get_result_filename`) to allow multiple classifier methods co-exist in the system.
 
+**Recognizer**
+
+This section contains the sound recognition related parameters (used in `task1_scene_classification.py`).
+
+    recognizer:
+      audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
+        clean_data: false           # Clean tested data from errors
+
+`audio_error_handling->clean_data: false`
+: Some datasets provide audio error annotations. With this switch these annotations can be used to exclude the segments containing audio errors from the feature matrix fed to the recognizer. Audio errors can be temporary microphone failure or radio signal interferences from mobile phones.
+
 **Detector**
 
-This section contains the sound event detection related parameters.
+This section contains the sound event detection related parameters (used in `task3_sound_event_detection_in_real_life_audio.py`).
 
     detector:
       decision_threshold: 140.0
@@ -474,6 +493,9 @@ This section contains the sound event detection related parameters.
 
 7. Changelog
 ============
+#### 1.1 / 2016-05-19
+* Added audio error handling 
+
 #### 1.0 / 2016-02-08
 * Initial commit
 
