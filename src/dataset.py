@@ -54,6 +54,12 @@ class Dataset(object):
         # Path to meta data file
         self.meta_file = os.path.join(self.local_path, self.meta_filename)
 
+        # Error meta data file, csv-format
+        self.error_meta_filename = 'error.txt'
+
+        # Path to error meta data file
+        self.error_meta_file = os.path.join(self.local_path, self.error_meta_filename)
+
         # Hash file to detect removed or added files
         self.filelisthash_filename = 'filelist.hash'
 
@@ -75,6 +81,9 @@ class Dataset(object):
 
         # List of meta data dict
         self.meta_data = None
+
+        # List of audio error meta data dict
+        self.error_meta_data = None
 
         # Training meta data for folds
         self.evaluation_data_train = {}
@@ -209,6 +218,66 @@ class Dataset(object):
         """
 
         return len(self.meta)
+
+    @property
+    def error_meta(self):
+        """Get audio error meta data for dataset. If not already read from disk, data is read and returned.
+
+        Parameters
+        ----------
+        Nothing
+
+        Returns
+        -------
+        error_meta_data : list
+            List containing audio error meta data as dict.
+
+        Raises
+        -------
+        IOError
+            audio error meta file not found.
+
+        """
+
+        if self.error_meta_data is None:
+            self.error_meta_data = []
+            error_meta_id = 0
+            if os.path.isfile(self.error_meta_file):
+                f = open(self.error_meta_file, 'rt')
+                try:
+                    reader = csv.reader(f, delimiter='\t')
+                    for row in reader:
+                        if len(row) == 4:
+                            # Event meta
+                            self.error_meta_data.append({'file': row[0],
+                                                   'event_onset': float(row[1]),
+                                                   'event_offset': float(row[2]),
+                                                   'event_label': row[3].rstrip(),
+                                                   'id': error_meta_id
+                                                   })
+                        error_meta_id += 1
+                finally:
+                    f.close()
+            else:
+                raise IOError("Error meta file not found [%s]" % self.error_meta_file)
+
+        return self.error_meta_data
+
+    def error_meta_count(self):
+        """Number of error meta data items.
+
+        Parameters
+        ----------
+        Nothing
+
+        Returns
+        -------
+        meta_item_count : int
+            Meta data item count
+
+        """
+
+        return len(self.error_meta)
 
     @property
     def fold_count(self):
@@ -790,6 +859,29 @@ class Dataset(object):
 
         return file_meta
 
+    def file_error_meta(self, file):
+        """Error meta data for given file
+
+        Parameters
+        ----------
+        file : str
+            File name
+
+        Returns
+        -------
+        list : list of dicts
+            List containing all error meta data related to given file.
+
+        """
+
+        file = self.absolute_to_relative(file)
+        file_error_meta = []
+        for item in self.error_meta:
+            if item['file'] == file:
+                file_error_meta.append(item)
+
+        return file_error_meta
+
     def relative_to_absolute_path(self, path):
         """Converts relative path into absolute path.
 
@@ -865,6 +957,11 @@ class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
             {
                 'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.meta.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.meta.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/45739/files/TUT-acoustic-scenes-2016-development.error.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-development.error.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
