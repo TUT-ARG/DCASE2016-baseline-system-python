@@ -64,6 +64,10 @@ features:
 # ==========================================================
 classifier:
   method: gmm                   # The system supports only gmm
+
+  audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
+    clean_data: false           # Exclude audio errors from training audio
+
   parameters: !!null            # Parameters are copied from classifier_parameters based on defined method
 
 classifier_parameters:
@@ -78,3 +82,10 @@ classifier_parameters:
     n_init: 1
     params: wmc
     init_params: wmc
+
+# ==========================================================
+# Recognizer
+# ==========================================================
+recognizer:
+  audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
+    clean_data: false           # Exclude audio errors from test audio

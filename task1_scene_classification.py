@@ -15,6 +15,7 @@ import numpy
 import csv
 import argparse
 import textwrap
+import copy
 
 from sklearn import mixture
 
@@ -129,9 +130,11 @@ def main(argv):
                            model_path=params['path']['models'],
                            feature_normalizer_path=params['path']['feature_normalizers'],
                            feature_path=params['path']['features'],
+                           feature_params=params['features'],
                            classifier_params=params['classifier']['parameters'],
                            classifier_method=params['classifier']['method'],
                            dataset_evaluation_mode=dataset_evaluation_mode,
+                           clean_audio_errors=params['classifier']['audio_error_handling']['clean_data'],
                            overwrite=params['general']['overwrite']
                            )
 
@@ -151,7 +154,8 @@ def main(argv):
                               model_path=params['path']['models'],
                               feature_params=params['features'],
                               dataset_evaluation_mode=dataset_evaluation_mode,
-                              classifier_method=params['classifier']['method'],                              
+                              classifier_method=params['classifier']['method'],
+                              clean_audio_errors=params['recognizer']['audio_error_handling']['clean_data'],
                               overwrite=params['general']['overwrite']
                               )
             
@@ -186,7 +190,8 @@ def main(argv):
                               model_path=params['path']['models'],
                               feature_params=params['features'],
                               dataset_evaluation_mode=dataset_evaluation_mode,
-                              classifier_method=params['classifier']['method'],                              
+                              classifier_method=params['classifier']['method'],
+                              clean_audio_errors=params['recognizer']['audio_error_handling']['clean_data'],
                               overwrite=True
                               )
 
@@ -222,7 +227,15 @@ def process_parameters(params):
 
     # Hash
     params['features']['hash'] = get_parameter_hash(params['features'])
-    params['classifier']['hash'] = get_parameter_hash(params['classifier'])
+
+    # Let's keep hashes backwards compatible after added parameters.
+    # Only if error handling is used, they are included in the hash.
+    classifier_params = copy.copy(params['classifier'])
+    if not classifier_params['audio_error_handling']['clean_data']:
+        del classifier_params['audio_error_handling']
+    params['classifier']['hash'] = get_parameter_hash(classifier_params)
+
+    params['recognizer']['hash'] = get_parameter_hash(params['recognizer'])
 
     # Paths
     params['path']['data'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), params['path']['data'])
@@ -244,12 +257,15 @@ def process_parameters(params):
     params['path']['models_'] = params['path']['models']
     params['path']['models'] = os.path.join(params['path']['base'],
                                             params['path']['models'],
-                                            params['features']['hash'], params['classifier']['hash'])
+                                            params['features']['hash'],
+                                            params['classifier']['hash'])
     # Results
     params['path']['results_'] = params['path']['results']
     params['path']['results'] = os.path.join(params['path']['base'],
                                              params['path']['results'],
-                                             params['features']['hash'], params['classifier']['hash'])
+                                             params['features']['hash'],
+                                             params['classifier']['hash'],
+                                             params['recognizer']['hash'])
 
     return params
 
@@ -322,6 +338,14 @@ def make_folders(params, parameter_filename='parameters.yaml'):
     if not os.path.isfile(result_models_parameter_filename):
         save_parameters(result_models_parameter_filename, params['classifier'])
 
+    result_models_parameter_filename = os.path.join(params['path']['base'],
+                                                    params['path']['results_'],
+                                                    params['features']['hash'],
+                                                    params['classifier']['hash'],
+                                                    params['recognizer']['hash'],
+                                                    parameter_filename)
+    if not os.path.isfile(result_models_parameter_filename):
+        save_parameters(result_models_parameter_filename, params['recognizer'])
 
 def get_feature_filename(audio_file, path, extension='cpickle'):
     """Get feature filename
@@ -557,8 +581,8 @@ def do_feature_normalization(dataset, feature_normalizer_path, feature_path, dat
             save_data(current_normalizer_file, normalizer)
 
 
-def do_system_training(dataset, model_path, feature_normalizer_path, feature_path, classifier_params,
-                       dataset_evaluation_mode='folds', classifier_method='gmm', overwrite=False):
+def do_system_training(dataset, model_path, feature_normalizer_path, feature_path, feature_params, classifier_params,
+                       dataset_evaluation_mode='folds', classifier_method='gmm', clean_audio_errors=False, overwrite=False):
     """System training
 
     model container format:
@@ -587,6 +611,9 @@ def do_system_training(dataset, model_path, feature_normalizer_path, feature_pat
     feature_path : str
         path where the features are saved.
 
+    feature_params : dict
+        parameter dict
+
     classifier_params : dict
         parameter dict
 
@@ -597,6 +624,10 @@ def do_system_training(dataset, model_path, feature_normalizer_path, feature_pat
     classifier_method : str ['gmm']
         classifier method, currently only GMM supported
         (Default value='gmm')
+
+    clean_audio_errors : bool
+        Remove audio errors from the training data
+        (Default value=False)
 
     overwrite : bool
         overwrite existing models
@@ -655,6 +686,19 @@ def do_system_training(dataset, model_path, feature_normalizer_path, feature_pat
                 # Scale features
                 feature_data = model_container['normalizer'].normalize(feature_data)
 
+                # Audio error removal
+                if clean_audio_errors:
+                    current_errors = dataset.file_error_meta(item['file'])
+                    if current_errors:
+                        removal_mask = numpy.ones((feature_data.shape[0]), dtype=bool)
+                        for error_event in current_errors:
+                            onset_frame = int(numpy.floor(error_event['event_onset'] / feature_params['hop_length_seconds']))
+                            offset_frame = int(numpy.ceil(error_event['event_offset'] / feature_params['hop_length_seconds']))
+                            if offset_frame > feature_data.shape[0]:
+                                offset_frame = feature_data.shape[0]
+                            removal_mask[onset_frame:offset_frame] = False
+                        feature_data = feature_data[removal_mask, :]
+
                 # Store features per class label
                 if item['scene_label'] not in data:
                     data[item['scene_label']] = feature_data
@@ -676,7 +720,7 @@ def do_system_training(dataset, model_path, feature_normalizer_path, feature_pat
 
 
 def do_system_testing(dataset, result_path, feature_path, model_path, feature_params,
-                      dataset_evaluation_mode='folds', classifier_method='gmm', overwrite=False):
+                      dataset_evaluation_mode='folds', classifier_method='gmm', clean_audio_errors=False, overwrite=False):
     """System testing.
 
     If extracted features are not found from disk, they are extracted but not saved.
@@ -705,6 +749,10 @@ def do_system_testing(dataset, result_path, feature_path, model_path, feature_pa
     classifier_method : str ['gmm']
         classifier method, currently only GMM supported
         (Default value='gmm')
+
+    clean_audio_errors : bool
+        Remove audio errors from the training data
+        (Default value=False)
 
     overwrite : bool
         overwrite existing models
@@ -774,6 +822,18 @@ def do_system_testing(dataset, result_path, feature_path, model_path, feature_pa
 
                 # Normalize features
                 feature_data = model_container['normalizer'].normalize(feature_data)
+
+                if clean_audio_errors:
+                    current_errors = dataset.file_error_meta(item['file'])
+                    if current_errors:
+                        removal_mask = numpy.ones((feature_data.shape[0]), dtype=bool)
+                        for error_event in current_errors:
+                            onset_frame = int(numpy.floor(error_event['event_onset'] / feature_params['hop_length_seconds']))
+                            offset_frame = int(numpy.ceil(error_event['event_offset'] / feature_params['hop_length_seconds']))
+                            if offset_frame > feature_data.shape[0]:
+                                offset_frame = feature_data.shape[0]
+                            removal_mask[onset_frame:offset_frame] = False
+                        feature_data = feature_data[removal_mask, :]
 
                 # Do classification for the block
                 if classifier_method == 'gmm':
