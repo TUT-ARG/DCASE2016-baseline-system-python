@@ -798,9 +798,13 @@ def do_system_testing(dataset, result_path, feature_path, model_path, feature_pa
     if classifier_method != 'gmm':
         raise ValueError("Unknown classifier method ["+classifier_method+"]")
 
+    # Check that target path exists, create if not
+    check_path(result_path)
+
     for fold in dataset.folds(mode=dataset_evaluation_mode):
         for scene_id, scene_label in enumerate(dataset.scene_labels):
             current_result_file = get_result_filename(fold=fold, scene_label=scene_label, path=result_path)
+
             if not os.path.isfile(current_result_file) or overwrite:
                 results = []
 
