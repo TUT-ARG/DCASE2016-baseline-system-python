@@ -259,7 +259,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 |-----------------------|-------------|-------------|-------------|-------------|-------------|
 | Home                  | 0.95        | 0.09        | 0.80        | 0.06        | 18.1 %      |
 | Residential area      | 0.83        | 0.07        | 0.69        | 0.08        | 35.2 %      |
-| **Average**           |  **0.89 **  |             |             |             | **26.6 %**  |
+| **Average**           | **0.89**    |             |             |             | **26.6 %**  |
 
 *Segment based metrics - class-wise*
 
@@ -267,7 +267,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 |-----------------------|-------------|-------------|
 | Home                  | 1.05        | 11.6 %      |
 | Residential area      | 1.04        | 20.2 %      | 
-| **Average**           |  **1.05 **  | **15.9 %**  |
+| **Average**           | **1.05**    | **15.9 %**  |
 
 *Event based metrics - overall*
 
@@ -275,7 +275,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 |-----------------------|-------------|-------------|
 | Home                  | 1.33        | 2.5 %       |
 | Residential area      | 1.98        | 1.6 %       |
-| **Average**           |  **1.66 **  | **2.0 %**   |
+| **Average**           | **1.66**    | **2.0 %**   |
 
 *Event based metrics - class-wise*
 
@@ -283,7 +283,7 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 |-----------------------|-------------|-------------|
 | Home                  | 1.31        | 2.2 %       |
 | Residential area      | 1.99        | 0.7 %       |
-| **Average**           |  **1.65 **  | **1.4 %**   |
+| **Average**           | **1.65**    | **1.4 %**   |
 
 
 6. System parameters
@@ -461,7 +461,7 @@ This section contains the sound recognition related parameters (used in `task1_s
 
     recognizer:
       audio_error_handling:         # Handling audio errors (temporary microphone failure and radio signal interferences from mobile phones)
-        clean_data: false           # Clean tested data from errors
+        clean_data: false           # Exclude audio errors from test audio
 
 `audio_error_handling->clean_data: false`
 : Some datasets provide audio error annotations. With this switch these annotations can be used to exclude the segments containing audio errors from the feature matrix fed to the recognizer. Audio errors can be temporary microphone failure or radio signal interferences from mobile phones.
