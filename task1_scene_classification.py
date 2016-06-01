@@ -800,7 +800,7 @@ def do_system_testing(dataset, result_path, feature_path, model_path, feature_pa
                 
                 # Load features
                 feature_filename = get_feature_filename(audio_file=item['file'], path=feature_path)
-                
+
                 if os.path.isfile(feature_filename):
                     feature_data = load_data(feature_filename)['feat']
                 else:
@@ -820,7 +820,7 @@ def do_system_testing(dataset, result_path, feature_path, model_path, feature_pa
                                                       acceleration_params=feature_params['mfcc_acceleration'],
                                                       statistics=False)['feat']
 
-                # Normalize features
+                # Scale features
                 feature_data = model_container['normalizer'].normalize(feature_data)
 
                 if clean_audio_errors:
