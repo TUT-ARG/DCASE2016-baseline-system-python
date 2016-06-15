@@ -105,7 +105,7 @@ def feature_extraction(y, fs=44100, statistics=True, include_mfcc0=True, include
         feature_matrix = numpy.vstack((feature_matrix, mfcc_delta))
 
     if include_acceleration:
-        # Acceleration coefficients (aka delta)
+        # Acceleration coefficients (aka delta delta)
         mfcc_delta2 = librosa.feature.delta(mfcc, order=2, **acceleration_params)
 
         # Add Acceleration Coefficients to feature matrix
