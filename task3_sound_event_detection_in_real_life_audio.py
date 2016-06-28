@@ -174,7 +174,7 @@ def main(argv):
     # System evaluation with challenge data
     elif not args.development and args.challenge:
         # Fetch data over internet and setup the data
-        challenge_dataset = eval(params['general']['challenge_dataset'])()
+        challenge_dataset = eval(params['general']['challenge_dataset'])(data_path=params['path']['data'])
 
         if params['flow']['initialize']:
             challenge_dataset.fetch()
