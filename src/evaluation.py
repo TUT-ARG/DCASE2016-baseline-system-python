@@ -241,20 +241,20 @@ class EventDetectionMetrics(object):
 
         Returns
         -------
-        event_roll : numpy.ndarray [shape=(math.ceil(data_length * 1 / time_resolution) + 1, amount of classes)]
+        event_roll : numpy.ndarray [shape=(math.ceil(data_length * 1 / time_resolution), amount of classes)]
             Event roll
         """
 
         # Initialize
         data_length = self.max_event_offset(data)
-        event_roll = numpy.zeros((math.ceil(data_length * 1 / time_resolution) + 1, len(self.class_list)))
+        event_roll = numpy.zeros(( int(math.ceil(data_length * 1 / time_resolution)), len(self.class_list)))
 
         # Fill-in event_roll
         for event in data:
             pos = self.class_list.index(event['event_label'].rstrip())
 
-            onset = math.floor(event['event_onset'] * 1 / time_resolution)
-            offset = math.ceil(event['event_offset'] * 1 / time_resolution) + 1
+            onset = int(math.floor(event['event_onset'] * 1 / time_resolution))
+            offset = int(math.ceil(event['event_offset'] * 1 / time_resolution))
 
             event_roll[onset:offset, pos] = 1
 
