@@ -257,17 +257,17 @@ Detailed description of metrics can be found from [DCASE2016 website](http://www
 
 | Scene                 | ER          | ER / S      | ER / D      | ER / I      |  F1         |
 |-----------------------|-------------|-------------|-------------|-------------|-------------|
-| Home                  | 0.95        | 0.09        | 0.80        | 0.06        | 18.1 %      |
-| Residential area      | 0.83        | 0.07        | 0.69        | 0.08        | 35.2 %      |
-| **Average**           | **0.89**    |             |             |             | **26.6 %**  |
+| Home                  | 0.96        | 0.08        | 0.82        | 0.06        | 15.9 %      |
+| Residential area      | 0.86        | 0.05        | 0.74        | 0.07        | 31.5 %      |
+| **Average**           | **0.91**    |             |             |             | **23.7 %**  |
 
 *Segment based metrics - class-wise*
 
 | Scene                 | ER          | F1          | 
 |-----------------------|-------------|-------------|
-| Home                  | 1.05        | 11.6 %      |
-| Residential area      | 1.04        | 20.2 %      | 
-| **Average**           | **1.05**    | **15.9 %**  |
+| Home                  | 1.06        | 9.2 %      |
+| Residential area      | 1.03        | 17.6 %      | 
+| **Average**           | **1.04**    | **13.4 %**  |
 
 *Event based metrics - overall*
 
