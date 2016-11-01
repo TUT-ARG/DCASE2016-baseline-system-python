@@ -573,7 +573,7 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
 
     """
 
-    def __init__(self, class_list, time_resolution=1.0, t_collar=0.2):
+    def __init__(self, class_list, t_collar=0.2, use_onset_condition=True, use_offset_condition=True):
         """__init__ method.
 
         Parameters
@@ -581,18 +581,23 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         class_list : list
             List of class labels to be evaluated.
 
-        time_resolution : float > 0
-            Time resolution used when converting event into event roll.
-            (Default value = 1.0)
-
         t_collar : float > 0
             Time collar for event onset and offset condition
             (Default value = 0.2)
 
+        use_onset_condition : bool
+            Use onset condition when finding correctly detected events
+            (Default value = True)
+
+        use_offset_condition : bool
+            Use offset condition when finding correctly detected events
+            (Default value = True)
+
         """
 
-        self.time_resolution = time_resolution
         self.t_collar = t_collar
+        self.use_onset_condition = use_onset_condition
+        self.use_offset_condition = use_offset_condition
 
         self.overall = {
             'Nref': 0.0,
@@ -655,19 +660,26 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         # Number of correctly transcribed events, onset/offset within a t_collar range
         for j in range(0, len(annotated_ground_truth)):
             for i in range(0, len(system_output)):
-                label_condition = annotated_ground_truth[j]['event_label'] == system_output[i]['event_label']
-                onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
-                                                       system_event=system_output[i],
-                                                       t_collar=self.t_collar)
+                if not sys_correct[i]:  # skip already matched events
+                    label_condition = annotated_ground_truth[j]['event_label'] == system_output[i]['event_label']
+                    if self.use_onset_condition:
+                        onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
+                                                               system_event=system_output[i],
+                                                               t_collar=self.t_collar)
+                    else:
+                        onset_condition = True
 
-                offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
-                                                         system_event=system_output[i],
-                                                         t_collar=self.t_collar)
+                    if self.use_offset_condition:
+                        offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
+                                                                system_event=system_output[i],
+                                                                t_collar=self.t_collar)
+                    else:
+                        offset_condition = True
 
-                if label_condition and onset_condition and offset_condition:
-                    ref_correct[j] = True
-                    sys_correct[i] = True
-                    break
+                    if label_condition and onset_condition and offset_condition:
+                        ref_correct[j] = True
+                        sys_correct[i] = True
+                        break
 
         Ntp = numpy.sum(sys_correct)
 
@@ -676,19 +688,28 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
 
         # Substitutions
         Nsubs = 0
+        sys_counted = numpy.zeros(Nsys, dtype=bool)
         for j in ref_leftover:
             for i in sys_leftover:
-                onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
-                                                       system_event=system_output[i],
-                                                       t_collar=self.t_collar)
+                if not sys_counted[i]:
+                    if self.use_onset_condition:
+                        onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
+                                                               system_event=system_output[i],
+                                                               t_collar=self.t_collar)
+                    else:
+                        onset_condition = True
 
-                offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
-                                                         system_event=system_output[i],
-                                                         t_collar=self.t_collar)
+                    if self.use_offset_condition:
+                        offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
+                                                                 system_event=system_output[i],
+                                                                 t_collar=self.t_collar)
+                    else:
+                        offset_condition = True
 
-                if onset_condition and offset_condition:
-                    Nsubs += 1
-                    break
+                    if onset_condition and offset_condition:
+                        sys_counted[i] = True
+                        Nsubs += 1
+                        break
 
         Nfp = Nsys - Ntp - Nsubs
         Nfn = Nref - Ntp - Nsubs
@@ -716,20 +737,29 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
                 if system_output[i]['event_label'] == class_label:
                     Nsys += 1
 
+            sys_counted = numpy.zeros(len(system_output), dtype=bool)
             for j in range(0, len(annotated_ground_truth)):
-                for i in range(0, len(system_output)):
-                    if annotated_ground_truth[j]['event_label'] == class_label and system_output[i]['event_label'] == class_label:
-                        onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
-                                                               system_event=system_output[i],
-                                                               t_collar=self.t_collar)
+                if annotated_ground_truth[j]['event_label'] == class_label:
+                    for i in range(0, len(system_output)):
+                        if system_output[i]['event_label'] == class_label and not sys_counted[i]:
+                            if self.use_onset_condition:
+                                onset_condition = self.onset_condition(annotated_event=annotated_ground_truth[j],
+                                                                       system_event=system_output[i],
+                                                                       t_collar=self.t_collar)
+                            else:
+                                onset_condition = True
 
-                        offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
-                                                                 system_event=system_output[i],
-                                                                 t_collar=self.t_collar)
+                            if self.use_offset_condition:
+                                offset_condition = self.offset_condition(annotated_event=annotated_ground_truth[j],
+                                                                         system_event=system_output[i],
+                                                                         t_collar=self.t_collar)
+                            else:
+                                offset_condition = True
 
-                        if onset_condition and offset_condition:
-                            Ntp += 1
-                            break
+                            if onset_condition and offset_condition:
+                                sys_counted[i] = True
+                                Ntp += 1
+                                break
 
             Nfp = Nsys - Ntp
             Nfn = Nref - Ntp
@@ -740,6 +770,7 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
             self.class_wise[class_label]['Ntp'] += Ntp
             self.class_wise[class_label]['Nfp'] += Nfp
             self.class_wise[class_label]['Nfn'] += Nfn
+
 
     def onset_condition(self, annotated_event, system_event, t_collar=0.200):
         """Onset condition, checked does the event pair fulfill condition
@@ -871,7 +902,7 @@ class DCASE2016_EventDetection_EventBasedMetrics(EventDetectionMetrics):
         # Class-wise metrics
         class_wise_F = []
         class_wise_ER = []
-        
+
         for class_label in self.class_list:
             if class_label not in results['class_wise']:
                 results['class_wise'][class_label] = {}
