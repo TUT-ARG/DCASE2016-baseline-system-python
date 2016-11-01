@@ -142,6 +142,15 @@ def load_event_list(file):
                         'event_label': row[2]
                     }
                 )
+            elif len(row) == 4:
+                data.append(
+                    {
+                        'file': row[0],
+                        'event_onset': float(row[1]),
+                        'event_offset': float(row[2]),
+                        'event_label': row[3]
+                    }
+                )
             elif len(row) == 5:
                 data.append(
                     {
