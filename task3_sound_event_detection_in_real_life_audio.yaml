@@ -16,7 +16,7 @@ general:
   development_dataset: TUTSoundEvents_2016_DevelopmentSet
   challenge_dataset: TUTSoundEvents_2016_EvaluationSet
 
-  overwrite: false              # Overwrite previously stored data 
+  overwrite: false              # Overwrite previously stored data
 
 # ==========================================================
 # Paths
@@ -48,7 +48,7 @@ features:
     window: hamming_asymmetric  # [hann_asymmetric, hamming_asymmetric]
     n_mfcc: 20                  # Number of MFCC coefficients
     n_mels: 40                  # Number of MEL bands used
-    n_fft: 2048                 # FFT length
+    n_fft: 2048                 # FFT length, make sure this is larger than win_length_seconds*fs
     fmin: 0                     # Minimum frequency when constructing MEL bands
     fmax: 22050                 # Maximum frequency when constructing MEL band
     htk: false                  # Switch for HTK-styled MEL-frequency equation
