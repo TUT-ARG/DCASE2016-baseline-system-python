@@ -904,7 +904,7 @@ def do_system_evaluation(dataset, result_path, dataset_evaluation_mode='folds'):
             overall_metrics_per_scene[scene_label] = {}
 
         dcase2016_segment_based_metric = DCASE2016_EventDetection_SegmentBasedMetrics(class_list=dataset.event_labels(scene_label=scene_label))
-        dcase2016_event_based_metric = DCASE2016_EventDetection_EventBasedMetrics(class_list=dataset.event_labels(scene_label=scene_label))
+        dcase2016_event_based_metric = DCASE2016_EventDetection_EventBasedMetrics(class_list=dataset.event_labels(scene_label=scene_label), use_onset_condition=True, use_offset_condition=False)
 
         for fold in dataset.folds(mode=dataset_evaluation_mode):
             results = []
