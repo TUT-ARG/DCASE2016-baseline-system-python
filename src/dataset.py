@@ -857,7 +857,7 @@ class Dataset(object):
         file = self.absolute_to_relative(file)
         file_meta = []
         for item in self.meta:
-            if item['file'] == file:
+            if self.absolute_to_relative(item['file']) == file:
                 file_meta.append(item)
 
         return file_meta
@@ -1185,6 +1185,7 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
                 self.evaluation_data_test[fold] = data
 
         return self.evaluation_data_test[fold]
+
 
 # TUT Sound events 2016 development and evaluation sets
 class TUTSoundEvents_2016_DevelopmentSet(Dataset):
