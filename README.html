@@ -1480,6 +1480,8 @@ or <code>python task1_scene_classification.py -development</code>.</p>
 <dl>
 <dt><code>overwrite: false</code></dt>
 <dd>Switch to allow the system always to overwrite existing data on disk. </dd>
+<dt><code>challenge_submission_mode: false</code></dt>
+<dd>Switch to control where system output is saved. If true, <code>path-&gt;challenge_results</code> used, and all results are overwritten by default.    </dd>
 </dl>
 <p><strong>System paths</strong></p>
 <p>This section contains the storage paths.      </p>
@@ -1606,6 +1608,10 @@ classifier_parameters:
 <dd>Minimum gap (in seconds) between events from same event class in the output. Consecutive events (event with same event label) having shorter gaps between them than set parameter are merged together.</dd>
 </dl>
 <h1 id="7-changelog"><a name="user-content-7-changelog" href="#7-changelog" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>7. Changelog</h1>
+<h4 id="12-2016-11-10"><a name="user-content-12-2016-11-10" href="#12-2016-11-10" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.2 / 2016-11-10</h4>
+<ul>
+<li>Added evaluation in challenge mode for task 1</li>
+</ul>
 <h4 id="11-2016-05-19"><a name="user-content-11-2016-05-19" href="#11-2016-05-19" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1.1 / 2016-05-19</h4>
 <ul>
 <li>Added audio error handling </li>

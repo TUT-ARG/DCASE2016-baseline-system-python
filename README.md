@@ -338,6 +338,9 @@ Available dataset handler classes:
 `overwrite: false`
 : Switch to allow the system always to overwrite existing data on disk. 
 
+`challenge_submission_mode: false`
+: Switch to control where system output is saved. If true, `path->challenge_results` used, and all results are overwritten by default.    
+
   
 **System paths**
 
@@ -493,6 +496,9 @@ This section contains the sound event detection related parameters (used in `tas
 
 7. Changelog
 ============
+#### 1.2 / 2016-11-10
+* Added evaluation in challenge mode for task 1
+
 #### 1.1 / 2016-05-19
 * Added audio error handling 
 
