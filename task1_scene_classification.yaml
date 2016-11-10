@@ -18,6 +18,8 @@ general:
 
   overwrite: false              # Overwrite previously stored data
 
+  challenge_submission_mode: false # save results into path->challenge_results for challenge submission
+
 # ==========================================================
 # Paths
 # ==========================================================
