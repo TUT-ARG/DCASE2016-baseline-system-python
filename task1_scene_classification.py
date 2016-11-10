@@ -88,7 +88,7 @@ def main(argv):
     if params['flow']['extract_features']:
         section_header('Feature extraction')
 
-        # Collect files in train sets
+        # Collect files in train sets and test sets
         files = []
         for fold in dataset.folds(mode=dataset_evaluation_mode):
             for item_id, item in enumerate(dataset.train(fold)):
@@ -176,30 +176,64 @@ def main(argv):
     elif not args.development and args.challenge:
         # Fetch data over internet and setup the data
         challenge_dataset = eval(params['general']['challenge_dataset'])(data_path=params['path']['data'])
+        if params['general']['challenge_submission_mode']:
+            result_path = params['path']['challenge_results']
+        else:
+            result_path = params['path']['results']
 
         if params['flow']['initialize']:
             challenge_dataset.fetch()
+
+        if not params['general']['challenge_submission_mode']:
+            section_header('Feature extraction for challenge data')
+
+            # Extract feature if not running in challenge submission mode.
+            # Collect test files
+            files = []
+            for fold in challenge_dataset.folds(mode=dataset_evaluation_mode):
+                for item_id, item in enumerate(dataset.test(fold)):
+                    if item['file'] not in files:
+                        files.append(item['file'])
+            files = sorted(files)
+
+            # Go through files and make sure all features are extracted
+            do_feature_extraction(files=files,
+                                  dataset=challenge_dataset,
+                                  feature_path=params['path']['features'],
+                                  params=params['features'],
+                                  overwrite=params['general']['overwrite'])
+            foot()
 
         # System testing
         if params['flow']['test_system']:
             section_header('System testing with challenge data')
 
-            do_system_testing(dataset=challenge_dataset,                              
+            do_system_testing(dataset=challenge_dataset,
                               feature_path=params['path']['features'],
-                              result_path=params['path']['challenge_results'],
+                              result_path=result_path,
                               model_path=params['path']['models'],
                               feature_params=params['features'],
                               dataset_evaluation_mode=dataset_evaluation_mode,
                               classifier_method=params['classifier']['method'],
                               clean_audio_errors=params['recognizer']['audio_error_handling']['clean_data'],
-                              overwrite=True
+                              overwrite=params['general']['overwrite'] or params['general']['challenge_submission_mode']
                               )
+            foot()
+
+            if params['general']['challenge_submission_mode']:
+                print " "
+                print "Your results for the challenge data are stored at ["+params['path']['challenge_results']+"]"
+                print " "
+
+        # System evaluation if not in challenge submission mode
+        if params['flow']['evaluate_system'] and not params['general']['challenge_submission_mode']:
+            section_header('System evaluation with challenge data')
+            do_system_evaluation(dataset=challenge_dataset,
+                                 dataset_evaluation_mode=dataset_evaluation_mode,
+                                 result_path=result_path)
 
             foot()
 
-            print " "
-            print "Your results for the challenge data are stored at ["+params['path']['challenge_results']+"]"
-            print " "
     return 0
 
 
