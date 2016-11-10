@@ -1084,27 +1084,27 @@ class TUTAcousticScenes_2016_EvaluationSet(Dataset):
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/sgn/arg/dcase2016/evaluation_data/TUT-acoustic-scenes-2016-evaluation.doc.zip',
+                'remote_package': 'https://zenodo.org/record/165995/files/TUT-acoustic-scenes-2016-evaluation.doc.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-evaluation.doc.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/sgn/arg/dcase2016/evaluation_data/TUT-acoustic-scenes-2016-evaluation.audio.1.zip',
+                'remote_package': 'https://zenodo.org/record/165995/files/TUT-acoustic-scenes-2016-evaluation.audio.1.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-evaluation.audio.1.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/sgn/arg/dcase2016/evaluation_data/TUT-acoustic-scenes-2016-evaluation.audio.2.zip',
+                'remote_package': 'https://zenodo.org/record/165995/files/TUT-acoustic-scenes-2016-evaluation.audio.2.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-evaluation.audio.2.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/sgn/arg/dcase2016/evaluation_data/TUT-acoustic-scenes-2016-evaluation.audio.3.zip',
+                'remote_package': 'https://zenodo.org/record/165995/files/TUT-acoustic-scenes-2016-evaluation.audio.3.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-evaluation.audio.3.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             },
             {
-                'remote_package': 'http://www.cs.tut.fi/sgn/arg/dcase2016/evaluation_data/TUT-acoustic-scenes-2016-evaluation.meta.zip',
+                'remote_package': 'https://zenodo.org/record/165995/files/TUT-acoustic-scenes-2016-evaluation.meta.zip',
                 'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2016-evaluation.meta.zip'),
                 'local_audio_path': os.path.join(self.local_path, 'audio'),
             }
