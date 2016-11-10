@@ -525,20 +525,21 @@ class Dataset(object):
                 if item['remote_package'] and not os.path.isfile(item['local_package']):
                     data = None
                     req = urllib2.Request(item['remote_package'], data, {})
-                    handle = urllib2.urlopen(req)
+                    handle = urllib2.urlopen(req, timeout=120)
 
-                    if "Content-Length" in handle.headers.items():
+                    if "Content-Length" in handle.info().keys():
                         size = int(handle.info()["Content-Length"])
+                    elif "content-length" in handle.info().keys():
+                        size = int(handle.info()["content-length"])
                     else:
                         size = None
+
                     actualSize = 0
                     blocksize = 64 * 1024
                     tmp_file = os.path.join(self.local_path, 'tmp_file')
                     fo = open(tmp_file, "wb")
-                    terminate = False
-                    while not terminate:
+                    while 1:
                         block = handle.read(blocksize)
-                        actualSize += len(block)
                         if size:
                             progress(title_text=os.path.split(item['local_package'])[1],
                                      percentage=actualSize / float(size),
@@ -549,9 +550,16 @@ class Dataset(object):
 
                         if len(block) == 0:
                             break
+
+                        actualSize += len(block)
                         fo.write(block)
+
                     fo.close()
+                    if size and actualSize < size:
+                        # We managed to donwload less than was promised
+                        raise IOError('Download failed [%s]' % (item['remote_package']))
                     os.rename(tmp_file, item['local_package'])
+
 
             except (urllib2.URLError, socket.timeout), e:
                 try:
