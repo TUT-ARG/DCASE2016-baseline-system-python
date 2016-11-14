@@ -525,7 +525,7 @@ class Dataset(object):
                 if item['remote_package'] and not os.path.isfile(item['local_package']):
                     data = None
                     req = urllib2.Request(item['remote_package'], data, {})
-                    handle = urllib2.urlopen(req, timeout=120)
+                    handle = urllib2.urlopen(req, timeout=320)
 
                     if "Content-Length" in handle.info().keys():
                         size = int(handle.info()["Content-Length"])
@@ -534,28 +534,28 @@ class Dataset(object):
                     else:
                         size = None
 
-                    actualSize = 0
-                    blocksize = 64 * 1024
+                    actual_size = 0
+                    block_size = 64 * 1024
                     tmp_file = os.path.join(self.local_path, 'tmp_file')
                     fo = open(tmp_file, "wb")
                     while 1:
-                        block = handle.read(blocksize)
+                        block = handle.read(block_size)
                         if size:
                             progress(title_text=os.path.split(item['local_package'])[1],
-                                     percentage=actualSize / float(size),
-                                     note=self.print_bytes(actualSize))
+                                     percentage=actual_size / float(size),
+                                     note=self.print_bytes(actual_size))
                         else:
                             progress(title_text=os.path.split(item['local_package'])[1],
-                                     note=self.print_bytes(actualSize))
+                                     note=self.print_bytes(actual_size))
 
                         if len(block) == 0:
                             break
 
-                        actualSize += len(block)
+                        actual_size += len(block)
                         fo.write(block)
 
                     fo.close()
-                    if size and actualSize < size:
+                    if size and actual_size < size:
                         # We managed to donwload less than was promised
                         raise IOError('Download failed [%s]' % (item['remote_package']))
                     os.rename(tmp_file, item['local_package'])
