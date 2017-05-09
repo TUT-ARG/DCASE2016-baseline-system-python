@@ -932,6 +932,335 @@ class Dataset(object):
 
 
 # =====================================================
+# DCASE 2017
+# =====================================================
+class TUTAcousticScenes_2017_DevelopmentSet(Dataset):
+    """TUT Acoustic scenes 2017 development dataset
+
+    This dataset is used in DCASE2017 - Task 1, Acoustic scene classification
+
+    """
+
+    def __init__(self, data_path='data'):
+        Dataset.__init__(self, data_path=data_path, name='TUT-acoustic-scenes-2017-development')
+
+        self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
+        self.name_remote = 'TUT Acoustic Scenes 2017, development dataset'
+        self.url = 'https://zenodo.org/record/400515'
+        self.audio_source = 'Field recording'
+        self.audio_type = 'Natural'
+        self.recording_device_model = 'Roland Edirol R-09'
+        self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
+
+        self.evaluation_folds = 4
+
+        self.package_list = [
+            {
+                'remote_package': None,
+                'local_package': None,
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.doc.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.doc.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.meta.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.meta.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.error.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.error.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.1.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.1.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.2.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.2.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.3.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.3.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.4.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.4.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.5.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.5.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.6.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.6.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.7.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.7.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.8.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.8.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.9.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.9.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400515/files/TUT-acoustic-scenes-2017-development.audio.10.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-acoustic-scenes-2017-development.audio.10.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            }
+        ]
+
+    def on_after_extract(self):
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
+        if not os.path.isfile(self.meta_file):
+            section_header('Generating meta file for dataset')
+            meta_data = {}
+            for fold in xrange(1, self.evaluation_folds):
+                # Read train files in
+                train_filename = os.path.join(self.evaluation_setup_path, 'fold' + str(fold) + '_train.txt')
+                f = open(train_filename, 'rt')
+                reader = csv.reader(f, delimiter='\t')
+                for row in reader:
+                    if row[0] not in meta_data:
+                        meta_data[row[0]] = row[1]
+
+                f.close()
+                # Read evaluation files in
+                eval_filename = os.path.join(self.evaluation_setup_path, 'fold' + str(fold) + '_evaluate.txt')
+                f = open(eval_filename, 'rt')
+                reader = csv.reader(f, delimiter='\t')
+                for row in reader:
+                    if row[0] not in meta_data:
+                        meta_data[row[0]] = row[1]
+                f.close()
+
+            f = open(self.meta_file, 'wt')
+            try:
+                writer = csv.writer(f, delimiter='\t')
+                for file in meta_data:
+                    raw_path, raw_filename = os.path.split(file)
+                    relative_path = self.absolute_to_relative(raw_path)
+                    label = meta_data[file]
+                    writer.writerow((os.path.join(relative_path, raw_filename), label))
+            finally:
+                f.close()
+            foot()
+
+
+class TUTSoundEvents_2017_DevelopmentSet(Dataset):
+    """TUT Sound events 2017 development dataset
+
+    This dataset is used in DCASE2017 - Task 3, Sound event detection in real life audio
+
+    """
+
+    def __init__(self, data_path='data'):
+        Dataset.__init__(self, data_path=data_path, name='TUT-sound-events-2017-development')
+
+        self.authors = 'Annamaria Mesaros, Toni Heittola, and Tuomas Virtanen'
+        self.name_remote = 'TUT Sound Events 2017, development dataset'
+        self.url = 'https://zenodo.org/record/400516'
+        self.audio_source = 'Field recording'
+        self.audio_type = 'Natural'
+        self.recording_device_model = 'Roland Edirol R-09'
+        self.microphone_model = 'Soundman OKM II Klassik/studio A3 electret microphone'
+
+        self.evaluation_folds = 4
+
+        self.package_list = [
+            {
+                'remote_package': None,
+                'local_package': None,
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': None,
+                'local_package': None,
+                'local_audio_path': os.path.join(self.local_path, 'audio', 'residential_area'),
+            },
+            {
+                'remote_package': None,
+                'local_package': None,
+                'local_audio_path': os.path.join(self.local_path, 'audio', 'home'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400516/files/TUT-sound-events-2017-development.doc.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2017-development.doc.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400516/files/TUT-sound-events-2017-development.meta.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2017-development.meta.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400516/files/TUT-sound-events-2017-development.audio.1.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2017-development.audio.1.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+            {
+                'remote_package': 'https://zenodo.org/record/400516/files/TUT-sound-events-2017-development.audio.2.zip',
+                'local_package': os.path.join(self.local_path, 'TUT-sound-events-2017-development.audio.2.zip'),
+                'local_audio_path': os.path.join(self.local_path, 'audio'),
+            },
+        ]
+
+    def event_label_count(self, scene_label=None):
+        return len(self.event_labels(scene_label=scene_label))
+
+    def event_labels(self, scene_label=None):
+        labels = []
+        for item in self.meta:
+            if scene_label is None or item['scene_label'] == scene_label:
+                if 'event_label' in item and item['event_label'].rstrip() not in labels:
+                    labels.append(item['event_label'].rstrip())
+        labels.sort()
+        return labels
+
+    def on_after_extract(self):
+        """After dataset packages are downloaded and extracted, meta-files are checked.
+
+        Parameters
+        ----------
+        nothing
+
+        Returns
+        -------
+        nothing
+
+        """
+
+        if not os.path.isfile(self.meta_file):
+            meta_file_handle = open(self.meta_file, 'wt')
+            try:
+                writer = csv.writer(meta_file_handle, delimiter='\t')
+                for filename in self.audio_files:
+                    raw_path, raw_filename = os.path.split(filename)
+                    relative_path = self.absolute_to_relative(raw_path)
+                    scene_label = relative_path.replace('audio', '')[1:]
+                    base_filename, file_extension = os.path.splitext(raw_filename)
+
+                    annotation_filename = os.path.join(self.local_path, relative_path.replace('audio', 'meta'),
+                                                       base_filename + '.ann')
+                    if os.path.isfile(annotation_filename):
+                        annotation_file_handle = open(annotation_filename, 'rt')
+                        try:
+                            annotation_file_reader = csv.reader(annotation_file_handle, delimiter='\t')
+                            for annotation_file_row in annotation_file_reader:
+                                writer.writerow((os.path.join(relative_path, raw_filename),
+                                                 scene_label,
+                                                 float(annotation_file_row[0].replace(',', '.')),
+                                                 float(annotation_file_row[1].replace(',', '.')),
+                                                 annotation_file_row[2], 'm'))
+                        finally:
+                            annotation_file_handle.close()
+            finally:
+                meta_file_handle.close()
+
+    def train(self, fold=0, scene_label=None):
+        if fold not in self.evaluation_data_train:
+            self.evaluation_data_train[fold] = {}
+            for scene_label_ in self.scene_labels:
+                if scene_label_ not in self.evaluation_data_train[fold]:
+                    self.evaluation_data_train[fold][scene_label_] = []
+
+                if fold > 0:
+                    with open(os.path.join(self.evaluation_setup_path,
+                                           scene_label_ + '_fold' + str(fold) + '_train.txt'), 'rt') as f:
+                        for row in csv.reader(f, delimiter='\t'):
+                            if len(row) == 5:
+                                # Event meta
+                                self.evaluation_data_train[fold][scene_label_].append({
+                                    'file': self.relative_to_absolute_path(row[0]),
+                                    'scene_label': row[1],
+                                    'event_onset': float(row[2]),
+                                    'event_offset': float(row[3]),
+                                    'event_label': row[4]
+                                })
+                else:
+                    data = []
+                    for item in self.meta:
+                        if item['scene_label'] == scene_label_:
+                            if 'event_label' in item:
+                                data.append({'file': self.relative_to_absolute_path(item['file']),
+                                             'scene_label': item['scene_label'],
+                                             'event_onset': item['event_onset'],
+                                             'event_offset': item['event_offset'],
+                                             'event_label': item['event_label'],
+                                             })
+                    self.evaluation_data_train[0][scene_label_] = data
+
+        if scene_label:
+            return self.evaluation_data_train[fold][scene_label]
+        else:
+            data = []
+            for scene_label_ in self.scene_labels:
+                for item in self.evaluation_data_train[fold][scene_label_]:
+                    data.append(item)
+            return data
+
+    def test(self, fold=0, scene_label=None):
+        if fold not in self.evaluation_data_test:
+            self.evaluation_data_test[fold] = {}
+            for scene_label_ in self.scene_labels:
+                if scene_label_ not in self.evaluation_data_test[fold]:
+                    self.evaluation_data_test[fold][scene_label_] = []
+                if fold > 0:
+                    with open(os.path.join(self.evaluation_setup_path,
+                                           scene_label_ + '_fold' + str(fold) + '_test.txt'), 'rt') as f:
+                        for row in csv.reader(f, delimiter='\t'):
+                            self.evaluation_data_test[fold][scene_label_].append(
+                                {'file': self.relative_to_absolute_path(row[0])})
+                else:
+                    data = []
+                    files = []
+                    for item in self.meta:
+                        if scene_label_ in item:
+                            if self.relative_to_absolute_path(item['file']) not in files:
+                                data.append({'file': self.relative_to_absolute_path(item['file'])})
+                                files.append(self.relative_to_absolute_path(item['file']))
+
+                    self.evaluation_data_test[0][scene_label_] = data
+
+        if scene_label:
+            return self.evaluation_data_test[fold][scene_label]
+        else:
+            data = []
+            for scene_label_ in self.scene_labels:
+                for item in self.evaluation_data_test[fold][scene_label_]:
+                    data.append(item)
+            return data
+
+
+# =====================================================
 # DCASE 2016
 # =====================================================
 class TUTAcousticScenes_2016_DevelopmentSet(Dataset):
