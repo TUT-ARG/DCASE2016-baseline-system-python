@@ -1,5 +1,6 @@
 scipy>=0.15.1
 numpy>=1.9.2
-scikit-learn>=0.16.1
+scikit-learn==0.16.1
 pyyaml>=3.11
-librosa>=0.4.0
+librosa==0.4.0
+soundfile>=0.9.0
