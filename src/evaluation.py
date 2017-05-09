@@ -44,6 +44,7 @@ class DCASE2016_SceneClassification_Metrics():
 
         """
         self.accuracies_per_class = None
+        self.correct_per_class = None
         self.Nsys = None
         self.Nref = None
         self.class_list = class_list
@@ -77,7 +78,7 @@ class DCASE2016_SceneClassification_Metrics():
         """
 
         confusion_matrix = metrics.confusion_matrix(y_true=y_true, y_pred=y_pred, labels=labels).astype(float)
-        return numpy.divide(numpy.diag(confusion_matrix), numpy.sum(confusion_matrix, 1)+self.eps)
+        return (numpy.diag(confusion_matrix), numpy.divide(numpy.diag(confusion_matrix), numpy.sum(confusion_matrix, 1)+self.eps))
 
     def evaluate(self, annotated_ground_truth, system_output):
         """Evaluate system output and annotated ground truth pair.
@@ -98,12 +99,17 @@ class DCASE2016_SceneClassification_Metrics():
 
         """
 
-        accuracies_per_class = self.accuracies(y_pred=system_output, y_true=annotated_ground_truth, labels=self.class_list)
+        correct_per_class, accuracies_per_class = self.accuracies(y_pred=system_output, y_true=annotated_ground_truth, labels=self.class_list)
 
         if self.accuracies_per_class is None:
             self.accuracies_per_class = accuracies_per_class
         else:
             self.accuracies_per_class = numpy.vstack((self.accuracies_per_class, accuracies_per_class))
+
+        if self.correct_per_class is None:
+            self.correct_per_class = correct_per_class
+        else:
+            self.correct_per_class = numpy.vstack((self.correct_per_class, correct_per_class))
 
         Nref = numpy.zeros(len(self.class_list))
         Nsys = numpy.zeros(len(self.class_list))
@@ -164,7 +170,9 @@ class DCASE2016_SceneClassification_Metrics():
         results = {
             'class_wise_data': {},
             'class_wise_accuracy': {},
-            'overall_accuracy': numpy.mean(self.accuracies_per_class)
+            'overall_accuracy': float(numpy.mean(self.accuracies_per_class)),
+            'class_wise_correct_count': self.correct_per_class.tolist(),
+
         }
         if len(self.Nsys.shape) == 2:
             results['Nsys'] = int(sum(sum(self.Nsys)))
